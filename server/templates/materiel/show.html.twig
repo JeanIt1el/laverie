@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Materiel{% endblock %}
+
+{% block body %}
+    <h1>Materiel</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ materiel.id }}</td>
+            </tr>
+            <tr>
+                <th>Nom_materiel</th>
+                <td>{{ materiel.nomMateriel }}</td>
+            </tr>
+            <tr>
+                <th>Type_materiel</th>
+                <td>{{ materiel.typeMateriel }}</td>
+            </tr>
+            <tr>
+                <th>Etat_materiel</th>
+                <td>{{ materiel.etatMateriel }}</td>
+            </tr>
+            <tr>
+                <th>Quantite</th>
+                <td>{{ materiel.quantite }}</td>
+            </tr>
+            <tr>
+                <th>Created_At</th>
+                <td>{{ materiel.createdAt ? materiel.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_materiel_index') }}">back to list</a>
+
+    <a href="{{ path('app_materiel_edit', {'id': materiel.id}) }}">edit</a>
+
+    {{ include('materiel/_delete_form.html.twig') }}
+{% endblock %}
