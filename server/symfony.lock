@@ -1,18 +1,4 @@
 {
-    "api-platform/symfony": {
-        "version": "3.4",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "3.3",
-            "ref": "74b45ac570c57eb1fbe56c984091a9ff87e18bab"
-        },
-        "files": [
-            "./config/packages/api_platform.yaml",
-            "./config/routes/api_platform.yaml",
-            "./src/ApiResource/.gitignore"
-        ]
-    },
     "doctrine/deprecations": {
         "version": "1.1",
         "recipe": {
@@ -49,31 +35,18 @@
             "./migrations/.gitignore"
         ]
     },
-    "nelmio/cors-bundle": {
-        "version": "2.5",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "1.5",
-            "ref": "6bea22e6c564fba3a1391615cada1437d0bde39c"
-        },
-        "files": [
-            "./config/packages/nelmio_cors.yaml"
-        ]
-    },
     "phpunit/phpunit": {
-        "version": "12.2",
+        "version": "9.6",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "11.1",
-            "ref": "c6658a60fc9d594805370eacdf542c3d6b5c0869"
+            "version": "9.6",
+            "ref": "6a9341aa97d441627f8bd424ae85dc04c944f8b4"
         },
         "files": [
             "./.env.test",
-            "./phpunit.dist.xml",
-            "./tests/bootstrap.php",
-            "./bin/phpunit"
+            "./phpunit.xml.dist",
+            "./tests/bootstrap.php"
         ]
     },
     "symfony/asset-mapper": {
@@ -204,6 +177,21 @@
             "./config/packages/notifier.yaml"
         ]
     },
+    "symfony/phpunit-bridge": {
+        "version": "7.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "6.3",
+            "ref": "a411a0480041243d97382cac7984f7dce7813c08"
+        },
+        "files": [
+            "./.env.test",
+            "./bin/phpunit",
+            "./phpunit.xml.dist",
+            "./tests/bootstrap.php"
+        ]
+    },
     "symfony/routing": {
         "version": "6.4",
         "recipe": {
@@ -268,18 +256,6 @@
         "files": [
             "./config/packages/twig.yaml",
             "./templates/base.html.twig"
-        ]
-    },
-    "symfony/uid": {
-        "version": "6.4",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "6.2",
-            "ref": "d294ad4add3e15d7eb1bae0221588ca89b38e558"
-        },
-        "files": [
-            "./config/packages/uid.yaml"
         ]
     },
     "symfony/ux-turbo": {
