@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit, Trash2, Eye, Phone, Mail, MapPin, Building } from 'lucide-react';
 import { mockClients } from '../../data/mockData';
 import { Client } from '../../types';
-
 interface ClientsModuleProps {
   isDarkMode: boolean;
 }
@@ -24,7 +23,7 @@ export default function ClientsModule({ isDarkMode }: ClientsModuleProps) {
 
   const getStatusBadge = (status: string) => {
     const baseClasses = "px-2 py-1 text-xs font-medium rounded-full";
-    return status === 'actif' 
+    return status === 'actif'
       ? `${baseClasses} ${isDarkMode ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-800'}`
       : `${baseClasses} ${isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-gray-100 text-gray-800'}`;
   };

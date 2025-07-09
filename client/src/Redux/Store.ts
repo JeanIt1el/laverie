@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
+import RoleReducer from './Slice/RoleSlice'
 
 export const store = configureStore({
   reducer: {
+    Roles : RoleReducer
   },
 })
 
 // Types (pour TypeScript)
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
+export type RootStateType = ReturnType<typeof store.getState>
+export type AppDispatchType = typeof store.dispatch

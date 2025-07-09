@@ -110,3 +110,18 @@ export interface Role {
   level: 'eleve' | 'moyen' | 'faible';
   department: string;
 }
+
+// ****************************************************** //
+
+export interface ActionType {
+  isLoading: boolean,
+  isDeleting: boolean,
+  isUpdating: boolean
+}
+
+
+export interface RoleType {
+  id: number,
+  nom_role: string,
+  description_role: string
+}
