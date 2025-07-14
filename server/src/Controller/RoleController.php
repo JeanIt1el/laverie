@@ -14,75 +14,87 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/role')]
 final class RoleController extends AbstractController
 {
-    #[Route(name: 'app_role_index', methods: ['GET'])]
-    public function index(RoleRepository $roleRepository) : Response
+    #[Route('', name: 'api_role_get_all', methods: ['GET'])]
+    public function getAllRoles(RoleRepository $roleRepository): Response
     {
         $roles = $roleRepository->findAll();
-        $datas = [];
+        $data = [];
+
         foreach ($roles as $role) {
-            $datas[] = [
-                'id' => $role->getId()  , 
-                'nom_role' => $role->getNomRole()  , 
-                'description' => $role->getDescriptionRole() 
-            ] ; 
-        } 
-        return $this->json( $datas );
+            $data[] = [
+                'id' => $role->getId(),
+                'nom_role' => $role->getNomRole(),
+                'description_role' => $role->getDescriptionRole(),
+            ];
+        }
+
+        return $this->json($data);
     }
 
-    #[Route('/new', name: 'app_role_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('', name: 'api_role_create', methods: ['POST'])]
+    public function createRole(Request $request, EntityManagerInterface $em): Response
     {
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['nom_role']) || empty($data['nom_role'])) {
+            return $this->json(['error' => 'nom_role is required'], Response::HTTP_BAD_REQUEST);
+        }
+
         $role = new Role();
-        $form = $this->createForm(RoleType::class, $role);
-        $form->handleRequest($request);
+        $role->setNomRole($data['nom_role']);
+        $role->setDescriptionRole($data['description_role'] ?? null);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($role);
-            $entityManager->flush();
+        $em->persist($role);
+        $em->flush();
 
-            return $this->redirectToRoute('app_role_index', [], Response::HTTP_SEE_OTHER);
-        }
+        return $this->json([
+            'message' => 'Role created successfully',
+            'id' => $role->getId(),
+        ], Response::HTTP_CREATED);
+    }
 
-        return $this->render('role/new.html.twig', [
-            'role' => $role,
-            'form' => $form,
+    #[Route('/{id}', name: 'api_role_get_one', methods: ['GET'])]
+    public function getRoleById(Role $role): Response
+    {
+        return $this->json([
+            'id' => $role->getId(),
+            'nom_role' => $role->getNomRole(),
+            'description_role' => $role->getDescriptionRole(),
         ]);
     }
 
-    #[Route('/{id}', name: 'app_role_show', methods: ['GET'])]
-    public function show(Role $role): Response
-    {
-        return $this->render('role/show.html.twig', [
-            'role' => $role,
-        ]);
+    #[Route('/{id}', name: 'api_role_update', methods: ['PUT', 'PATCH'])]
+public function updateRole(Request $request, Role $role, EntityManagerInterface $em): Response
+{
+    $data = json_decode($request->getContent(), true);
+
+    if (isset($data['nom_role'])) {
+        $role->setNomRole($data['nom_role']);
     }
 
-    #[Route('/{id}/edit', name: 'app_role_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Role $role, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(RoleType::class, $role);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_role_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('role/edit.html.twig', [
-            'role' => $role,
-            'form' => $form,
-        ]);
+    if (isset($data['description_role'])) {
+        $role->setDescriptionRole($data['description_role']);
     }
 
-    #[Route('/{id}', name: 'app_role_delete', methods: ['POST'])]
-    public function delete(Request $request, Role $role, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete' . $role->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($role);
-            $entityManager->flush();
-        }
+    $em->flush();
 
-        return $this->redirectToRoute('app_role_index', [], Response::HTTP_SEE_OTHER);
+    // Retourner le rôle mis à jour
+    return $this->json([
+        'id' => $role->getId(),
+        'nom_role' => $role->getNomRole(),
+        'description_role' => $role->getDescriptionRole(),
+    ]);
+}
+
+
+    #[Route('/{id}', name: 'api_role_delete', methods: ['DELETE'])]
+    public function deleteRole(Role $role, EntityManagerInterface $em): Response
+    {
+        $em->remove($role);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Role deleted successfully',
+        ]);
     }
 }

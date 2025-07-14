@@ -8,7 +8,11 @@ import ServicesModule from './components/Modules/ServicesModule';
 import MaterialsModule from './components/Modules/MaterialsModule';
 import PlanningModule from './components/Modules/PlanningModule';
 import EmployeesModule from './components/Modules/EmployeesModule';
-import RolesModule from './components/Modules/RolesModule';
+import RoleList from './components/Modules/role/RoleList';
+import RoleAdd from './components/Modules/role/RoleAdd';
+import RoleEdit from './components/Modules/role/RoleEdit';
+
+
 import DashBoard from './components/Modules/DashBoard';
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -49,7 +53,11 @@ function App() {
               <Route path="/materials" element={<MaterialsModule />} />
               <Route path="/planning" element={<PlanningModule />} />
               <Route path="/employees" element={<EmployeesModule />} />
-              <Route path="/roles" element={<RolesModule />} />
+              <Route path="/roles" element={<RoleList />} />
+              <Route path="/roles/Add" element={<RoleAdd />} />
+              <Route path="/roles/:id/edit" element={<RoleEdit />} />
+
+
               <Route path="/parametre" element={<Parametre />} />
               <Route path="*" element={<div>404 - Page non trouvée</div>} />
             </Routes>
