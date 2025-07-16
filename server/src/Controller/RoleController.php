@@ -35,24 +35,25 @@ final class RoleController extends AbstractController
     public function createRole(Request $request, EntityManagerInterface $em): Response
     {
         $data = json_decode($request->getContent(), true);
-
+    
         if (!isset($data['nom_role']) || empty($data['nom_role'])) {
             return $this->json(['error' => 'nom_role is required'], Response::HTTP_BAD_REQUEST);
         }
-
+    
         $role = new Role();
         $role->setNomRole($data['nom_role']);
         $role->setDescriptionRole($data['description_role'] ?? null);
-
+    
         $em->persist($role);
         $em->flush();
-
+    
         return $this->json([
-            'message' => 'Role created successfully',
             'id' => $role->getId(),
+            'nom_role' => $role->getNomRole(),
+            'description_role' => $role->getDescriptionRole(),
         ], Response::HTTP_CREATED);
     }
-
+    
     #[Route('/{id}', name: 'api_role_get_one', methods: ['GET'])]
     public function getRoleById(Role $role): Response
     {
