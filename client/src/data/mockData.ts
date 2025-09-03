@@ -1,393 +1,216 @@
-import { Client, Reservation, Payment, Service, Material, Employee, Planning, Role } from '../types';
+import { Service, Review, FAQ, BlogPost } from '../types';
 
-export const mockClients: Client[] = [
+export const services: Service[] = [
   {
     id: '1',
-    name: 'Hôtel Colbert Antananarivo',
-    email: 'contact@hotelcolbert.mg',
-    phone: '+261 20 22 202 02',
-    address: 'Rue Printsy Ratsimamanga, Antananarivo',
-    type: 'hotel',
-    status: 'actif',
-    totalContracts: 24,
-    totalSpent: 15750000,
-    lastActivity: '2024-01-15',
-    city: 'Antananarivo'
+    name: 'Lavage Standard',
+    description: 'Lavage complet de vos vêtements avec lessive haute qualité et adoucissant. Idéal pour le linge du quotidien.',
+    price: 2500,
+    duration: '24h',
+    icon: 'Shirt'
   },
   {
     id: '2',
-    name: 'Terrain Industriel Ankorondrano',
-    email: 'admin@ankorondrano-industrial.mg',
-    phone: '+261 34 12 345 67',
-    address: 'Zone Industrielle Ankorondrano',
-    type: 'terrain',
-    status: 'actif',
-    totalContracts: 12,
-    totalSpent: 8900000,
-    lastActivity: '2024-01-12',
-    city: 'Antananarivo'
+    name: 'Repassage Professionnel',
+    description: 'Repassage expert pour un rendu impeccable. Vos vêtements retrouvent leur forme et leur élégance.',
+    price: 1500,
+    duration: '12h',
+    icon: 'Zap'
   },
   {
     id: '3',
-    name: 'Résidence Ivandry',
-    email: 'residence.ivandry@gmail.com',
-    phone: '+261 33 98 765 43',
-    address: 'Quartier Ivandry, Antananarivo',
-    type: 'residence',
-    status: 'actif',
-    totalContracts: 6,
-    totalSpent: 2450000,
-    lastActivity: '2024-01-10',
-    city: 'Antananarivo'
+    name: 'Nettoyage à Sec',
+    description: 'Nettoyage délicat pour vos vêtements fragiles, costumes, robes de soirée et tissus délicats.',
+    price: 4000,
+    duration: '48h',
+    icon: 'Sparkles'
   },
   {
     id: '4',
-    name: 'Hôtel Palissandre Côte Ouest',
-    email: 'info@palissandre.mg',
-    phone: '+261 62 225 225',
-    address: 'Morondava, Côte Ouest',
-    type: 'hotel',
-    status: 'actif',
-    totalContracts: 18,
-    totalSpent: 12300000,
-    lastActivity: '2024-01-08',
-    city: 'Morondava'
+    name: 'Lavage Express',
+    description: 'Service rapide pour vos urgences. Lavage et séchage en moins de 6 heures.',
+    price: 3500,
+    duration: '6h',
+    icon: 'Clock'
+  },
+  {
+    id: '5',
+    name: 'Lavage Couette & Oreillers',
+    description: 'Nettoyage spécialisé pour couettes, oreillers et linge de maison volumineux.',
+    price: 5000,
+    duration: '72h',
+    icon: 'Home'
+  },
+  {
+    id: '6',
+    name: 'Traitement Anti-Taches',
+    description: 'Élimination professionnelle des taches tenaces avec produits spécialisés.',
+    price: 2000,
+    duration: '24h',
+    icon: 'Droplets'
   }
 ];
 
-export const mockReservations: Reservation[] = [
+export const reviews: Review[] = [
   {
     id: '1',
-    clientId: '1',
-    clientName: 'Hôtel Colbert Antananarivo',
-    serviceId: '1',
-    serviceName: 'Nettoyage Complet Hôtel',
-    status: 'confirme',
-    date: '2024-01-20',
-    time: '06:00',
-    duration: 480,
-    totalAmount: 850000,
-    location: 'Antananarivo Centre',
-    surface: 2500
+    customerName: 'Marie Dubois',
+    rating: 5,
+    comment: 'Service exceptionnel ! Mes vêtements sont revenus impeccables et l\'équipe est très professionnelle. Je recommande vivement CleanCare.',
+    date: new Date('2024-01-15'),
+    verified: true
   },
   {
     id: '2',
-    clientId: '2',
-    clientName: 'Terrain Industriel Ankorondrano',
-    serviceId: '2',
-    serviceName: 'Débroussaillage Terrain',
-    status: 'en-attente',
-    date: '2024-01-18',
-    time: '07:00',
-    duration: 360,
-    totalAmount: 650000,
-    location: 'Ankorondrano',
-    surface: 5000
+    customerName: 'Jean Kouassi',
+    rating: 5,
+    comment: 'Très satisfait du service de collecte et livraison. Ponctuel, professionnel et de qualité. Mes chemises n\'ont jamais été aussi bien repassées !',
+    date: new Date('2024-01-20'),
+    verified: true
   },
   {
     id: '3',
-    clientId: '3',
-    clientName: 'Résidence Ivandry',
-    serviceId: '3',
-    serviceName: 'Entretien Espaces Verts',
-    status: 'termine',
-    date: '2024-01-10',
-    time: '08:00',
-    duration: 240,
-    totalAmount: 320000,
-    location: 'Ivandry',
-    surface: 800
-  }
-];
-
-export const mockPayments: Payment[] = [
-  {
-    id: '1',
-    reservationId: '1',
-    clientName: 'Hôtel Colbert Antananarivo',
-    amount: 850000,
-    status: 'paye',
-    method: 'virement',
-    date: '2024-01-15',
-    dueDate: '2024-01-20',
-    currency: 'MGA'
-  },
-  {
-    id: '2',
-    reservationId: '2',
-    clientName: 'Terrain Industriel Ankorondrano',
-    amount: 650000,
-    status: 'en-attente',
-    method: 'cheque',
-    date: '2024-01-16',
-    dueDate: '2024-01-18',
-    currency: 'MGA'
-  },
-  {
-    id: '3',
-    reservationId: '3',
-    clientName: 'Résidence Ivandry',
-    amount: 320000,
-    status: 'en-retard',
-    method: 'especes',
-    date: '2024-01-05',
-    dueDate: '2024-01-10',
-    currency: 'MGA'
-  }
-];
-
-export const mockServices: Service[] = [
-  {
-    id: '1',
-    name: 'Nettoyage Complet Hôtel',
-    description: 'Service complet de nettoyage pour établissements hôteliers',
-    price: 850000,
-    duration: 480,
-    category: 'Nettoyage Hôtel',
-    status: 'actif',
-    bookingCount: 45,
-    equipment: ['Aspirateurs industriels', 'Produits désinfectants', 'Matériel de lavage']
-  },
-  {
-    id: '2',
-    name: 'Débroussaillage Terrain',
-    description: 'Débroussaillage et nettoyage de terrains industriels et résidentiels',
-    price: 650000,
-    duration: 360,
-    category: 'Nettoyage Terrain',
-    status: 'actif',
-    bookingCount: 32,
-    equipment: ['Débroussailleuses', 'Tondeuses', 'Outils de jardinage']
-  },
-  {
-    id: '3',
-    name: 'Entretien Espaces Verts',
-    description: 'Entretien et maintenance des espaces verts et jardins',
-    price: 320000,
-    duration: 240,
-    category: 'Entretien',
-    status: 'actif',
-    bookingCount: 28,
-    equipment: ['Sécateurs', 'Arrosoirs', 'Engrais']
+    customerName: 'Fatou Traoré',
+    rating: 4,
+    comment: 'Bon service dans l\'ensemble. Le repassage est parfait et l\'équipe est très aimable. Petit bémol sur les délais parfois un peu longs.',
+    date: new Date('2024-01-25'),
+    verified: true
   },
   {
     id: '4',
-    name: 'Nettoyage Bureau',
-    description: 'Nettoyage quotidien des espaces de bureau',
-    price: 180000,
-    duration: 120,
-    category: 'Nettoyage Bureau',
-    status: 'actif',
-    bookingCount: 56,
-    equipment: ['Aspirateurs', 'Produits vitres', 'Chiffons microfibres']
+    customerName: 'Amadou Bamba',
+    rating: 5,
+    comment: 'CleanCare a sauvé ma robe de soirée ! Tache de vin rouge complètement disparue. Service de nettoyage à sec exceptionnel.',
+    date: new Date('2024-01-18'),
+    verified: true
+  },
+  {
+    id: '5',
+    customerName: 'Aïcha Sanogo',
+    rating: 5,
+    comment: 'Service client au top ! Collecte à l\'heure, livraison rapide et linge parfaitement propre. Je ne peux plus m\'en passer.',
+    date: new Date('2024-01-22'),
+    verified: true
+  },
+  {
+    id: '6',
+    customerName: 'Koffi Yao',
+    rating: 4,
+    comment: 'Très bon rapport qualité-prix. Le lavage express m\'a dépanné plusieurs fois. Équipe réactive et professionnelle.',
+    date: new Date('2024-01-28'),
+    verified: true
   }
 ];
 
-export const mockMaterials: Material[] = [
+export const faqData: FAQ[] = [
   {
     id: '1',
-    name: 'Détergent Industriel',
-    category: 'Produits Chimiques',
-    quantity: 25,
-    minStock: 10,
-    status: 'disponible',
-    lastUpdated: '2024-01-15',
-    supplier: 'ChemMada SARL',
-    unit: 'litres'
+    question: 'Quels sont vos horaires de collecte et de livraison ?',
+    answer: 'Nous collectons et livrons du lundi au samedi de 7h00 à 19h00, et le dimanche de 9h00 à 17h00. Vous pouvez planifier votre créneau selon vos préférences lors de la réservation en ligne.'
   },
   {
     id: '2',
-    name: 'Débroussailleuses',
-    category: 'Équipements',
-    quantity: 3,
-    minStock: 5,
-    status: 'stock-faible',
-    lastUpdated: '2024-01-14',
-    supplier: 'EquipMada',
-    unit: 'unités'
+    question: 'Comment fonctionne le paiement ?',
+    answer: 'Nous acceptons plusieurs moyens de paiement : carte bancaire, Mobile Money (Orange Money, MTN Money, Moov Money), PayPal et paiement à la livraison. Tous les paiements en ligne sont sécurisés et vous recevez une facture électronique.'
   },
   {
     id: '3',
-    name: 'Camion de Transport',
-    category: 'Véhicules',
-    quantity: 2,
-    minStock: 1,
-    status: 'maintenance',
-    lastUpdated: '2024-01-12',
-    supplier: 'AutoMada',
-    unit: 'unités'
+    question: 'Que faire en cas de dommage sur un vêtement ?',
+    answer: 'Nous sommes entièrement assurés pour tous dommages. En cas de problème, contactez-nous immédiatement au +225 01 02 03 04 05. Nous procédons à une expertise et vous dédommageons selon nos conditions générales dans les 48h.'
   },
   {
     id: '4',
-    name: 'Aspirateurs Industriels',
-    category: 'Équipements',
-    quantity: 8,
-    minStock: 4,
-    status: 'disponible',
-    lastUpdated: '2024-01-16',
-    supplier: 'TechClean Madagascar',
-    unit: 'unités'
+    question: 'Livrez-vous dans toute la ville d\'Abidjan ?',
+    answer: 'Nous couvrons actuellement 15 quartiers d\'Abidjan avec livraison gratuite. Consultez notre page "Zone de couverture" pour vérifier si votre quartier est desservi. Nous étendons régulièrement notre zone de service.'
+  },
+  {
+    id: '5',
+    question: 'Quels produits utilisez-vous pour le nettoyage ?',
+    answer: 'Nous utilisons exclusivement des produits professionnels de haute qualité, biodégradables et respectueux de l\'environnement. Nos lessives sont hypoallergéniques et adaptées aux peaux sensibles.'
+  },
+  {
+    id: '6',
+    question: 'Puis-je suivre ma commande en temps réel ?',
+    answer: 'Oui ! Dès votre commande confirmée, vous recevez un numéro de suivi. Connectez-vous à votre espace client pour suivre chaque étape : collecte, lavage, séchage, repassage et livraison. Vous recevez aussi des SMS de notification.'
+  },
+  {
+    id: '7',
+    question: 'Proposez-vous des tarifs préférentiels pour les gros volumes ?',
+    answer: 'Oui, nous proposons des tarifs dégressifs pour les commandes importantes et des abonnements mensuels avantageux pour nos clients réguliers. Contactez-nous pour un devis personnalisé.'
+  },
+  {
+    id: '8',
+    question: 'Comment annuler ou modifier une commande ?',
+    answer: 'Vous pouvez annuler ou modifier votre commande jusqu\'à 2h avant l\'heure de collecte prévue via votre espace client ou en nous appelant. Aucun frais d\'annulation n\'est appliqué dans ce délai.'
   }
 ];
 
-export const mockEmployees: Employee[] = [
+export const blogPosts: BlogPost[] = [
   {
     id: '1',
-    name: 'Rakoto Andry',
-    email: 'rakoto.andry@cleanmada.mg',
-    phone: '+261 34 12 345 67',
-    role: 'Chef d\'Équipe',
-    department: 'Nettoyage Hôtels',
-    status: 'actif',
-    hireDate: '2022-03-15',
-    specialization: ['Nettoyage hôtelier', 'Formation équipe'],
-    salary: 800000
+    title: 'Comment entretenir vos vêtements en coton pour qu\'ils durent plus longtemps',
+    excerpt: 'Découvrez les meilleures techniques professionnelles pour préserver la qualité et la durée de vie de vos vêtements en coton.',
+    content: 'Le coton est une fibre naturelle qui nécessite un entretien particulier pour conserver sa douceur et sa forme...',
+    author: 'Équipe CleanCare',
+    date: new Date('2024-01-10'),
+    image: 'https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg?auto=compress&cs=tinysrgb&w=800',
+    category: 'Conseils'
   },
   {
     id: '2',
-    name: 'Rasoa Hery',
-    email: 'rasoa.hery@cleanmada.mg',
-    phone: '+261 33 98 765 43',
-    role: 'Superviseur Terrain',
-    department: 'Nettoyage Terrains',
-    status: 'actif',
-    hireDate: '2021-09-20',
-    specialization: ['Débroussaillage', 'Conduite engins'],
-    salary: 750000
+    title: 'Les secrets du repassage professionnel révélés',
+    excerpt: 'Apprenez les techniques utilisées par nos experts pour obtenir un repassage parfait et professionnel à chaque fois.',
+    content: 'Le repassage est un art qui demande technique, patience et les bons outils...',
+    author: 'Marie Kouamé, Responsable Qualité',
+    date: new Date('2024-01-05'),
+    image: 'https://images.pexels.com/photos/6198/vintage-irons-pressing-domestic.jpg?auto=compress&cs=tinysrgb&w=800',
+    category: 'Techniques'
   },
   {
     id: '3',
-    name: 'Rabe Miora',
-    email: 'rabe.miora@cleanmada.mg',
-    phone: '+261 32 11 222 33',
-    role: 'Agent de Nettoyage',
-    department: 'Nettoyage Bureaux',
-    status: 'actif',
-    hireDate: '2023-01-10',
-    specialization: ['Nettoyage bureaux', 'Entretien'],
-    salary: 450000
+    title: 'Nettoyage à sec : quand et pourquoi l\'utiliser ?',
+    excerpt: 'Tout ce que vous devez savoir sur le nettoyage à sec, ses avantages et les types de vêtements qui en bénéficient le plus.',
+    content: 'Le nettoyage à sec est une technique spécialisée qui utilise des solvants au lieu de l\'eau...',
+    author: 'Didier Kouame, Directeur Technique',
+    date: new Date('2024-01-12'),
+    image: 'https://images.pexels.com/photos/5591664/pexels-photo-5591664.jpeg?auto=compress&cs=tinysrgb&w=800',
+    category: 'Techniques'
   },
   {
     id: '4',
-    name: 'Nivo Randria',
-    email: 'nivo.randria@cleanmada.mg',
-    phone: '+261 34 55 666 77',
-    role: 'Mécanicien',
-    department: 'Maintenance',
-    status: 'actif',
-    hireDate: '2020-11-05',
-    specialization: ['Réparation équipements', 'Maintenance véhicules'],
-    salary: 650000
+    title: 'Éliminer les taches : guide complet par type de tache',
+    excerpt: 'Guide pratique pour traiter efficacement tous types de taches avant qu\'elles ne deviennent permanentes.',
+    content: 'Chaque type de tache nécessite un traitement spécifique pour être éliminée efficacement...',
+    author: 'Équipe CleanCare',
+    date: new Date('2024-01-08'),
+    image: 'https://images.pexels.com/photos/4239146/pexels-photo-4239146.jpeg?auto=compress&cs=tinysrgb&w=800',
+    category: 'Astuces'
   }
 ];
 
-export const mockPlanning: Planning[] = [
+export const teamMembers = [
   {
-    id: '1',
-    employeeId: '1',
-    employeeName: 'Rakoto Andry',
-    serviceId: '1',
-    serviceName: 'Nettoyage Complet Hôtel',
-    clientName: 'Hôtel Colbert Antananarivo',
-    date: '2024-01-20',
-    startTime: '06:00',
-    endTime: '14:00',
-    status: 'planifie',
-    location: 'Antananarivo Centre',
-    teamSize: 6,
-    equipment: ['Aspirateurs industriels', 'Produits désinfectants']
+    name: 'Kouamé Didier',
+    role: 'Directeur Général & Fondateur',
+    image: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400',
+    description: '15 ans d\'expérience dans le secteur du nettoyage professionnel. Diplômé en gestion d\'entreprise.'
   },
   {
-    id: '2',
-    employeeId: '2',
-    employeeName: 'Rasoa Hery',
-    serviceId: '2',
-    serviceName: 'Débroussaillage Terrain',
-    clientName: 'Terrain Industriel Ankorondrano',
-    date: '2024-01-18',
-    startTime: '07:00',
-    endTime: '13:00',
-    status: 'en-cours',
-    location: 'Ankorondrano',
-    teamSize: 4,
-    equipment: ['Débroussailleuses', 'Tondeuses']
+    name: 'Aya Fatima',
+    role: 'Responsable Qualité & Formation',
+    image: 'https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg?auto=compress&cs=tinysrgb&w=400',
+    description: 'Experte en techniques de nettoyage et formation du personnel. Garante de nos standards de qualité.'
   },
   {
-    id: '3',
-    employeeId: '3',
-    employeeName: 'Rabe Miora',
-    serviceId: '3',
-    serviceName: 'Entretien Espaces Verts',
-    clientName: 'Résidence Ivandry',
-    date: '2024-01-10',
-    startTime: '08:00',
-    endTime: '12:00',
-    status: 'termine',
-    location: 'Ivandry',
-    teamSize: 2,
-    equipment: ['Sécateurs', 'Arrosoirs']
+    name: 'Brou Michel',
+    role: 'Chef d\'Équipe Opérations',
+    image: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400',
+    description: 'Coordonne les équipes de collecte et livraison. 10 ans d\'expérience en logistique urbaine.'
   }
 ];
 
-export const mockRoles: Role[] = [
-  {
-    id: '1',
-    name: 'Administrateur',
-    description: 'Accès complet à tous les modules du système',
-    permissions: ['gerer_utilisateurs', 'gerer_roles', 'voir_rapports', 'gerer_parametres', 'gerer_paiements', 'gerer_clients'],
-    userCount: 2,
-    level: 'eleve',
-    department: 'Administration'
-  },
-  {
-    id: '2',
-    name: 'Superviseur',
-    description: 'Gestion des opérations et supervision des équipes',
-    permissions: ['voir_rapports', 'gerer_clients', 'gerer_reservations', 'gerer_employes', 'gerer_planning'],
-    userCount: 3,
-    level: 'moyen',
-    department: 'Opérations'
-  },
-  {
-    id: '3',
-    name: 'Chef d\'Équipe',
-    description: 'Coordination des équipes de nettoyage sur le terrain',
-    permissions: ['voir_planning', 'gerer_equipe', 'voir_materiels', 'mettre_a_jour_statut'],
-    userCount: 5,
-    level: 'moyen',
-    department: 'Terrain'
-  },
-  {
-    id: '4',
-    name: 'Agent de Nettoyage',
-    description: 'Exécution des tâches de nettoyage assignées',
-    permissions: ['voir_planning_personnel', 'mettre_a_jour_profil', 'voir_taches'],
-    userCount: 15,
-    level: 'faible',
-    department: 'Terrain'
-  }
+export const coverageAreas = [
+  'Cocody', 'Plateau', 'Marcory', 'Koumassi', 'Port-Bouët',
+  'Treichville', 'Adjamé', 'Attécoubé', 'Yopougon', 'Abobo',
+  'Bingerville', 'Anyama', 'Songon', 'Grand-Bassam', 'Dabou'
 ];
-
-export const chartData = {
-  reservations: [
-    { name: 'Jan', value: 45 },
-    { name: 'Fév', value: 52 },
-    { name: 'Mar', value: 48 },
-    { name: 'Avr', value: 61 },
-    { name: 'Mai', value: 55 },
-    { name: 'Jun', value: 67 }
-  ],
-  revenue: [
-    { name: 'Jan', value: 18400000 },
-    { name: 'Fév', value: 21200000 },
-    { name: 'Mar', value: 19800000 },
-    { name: 'Avr', value: 25500000 },
-    { name: 'Mai', value: 23800000 },
-    { name: 'Jun', value: 28200000 }
-  ],
-  payments: [
-    { name: 'Payé', value: 75, color: '#10B981' },
-    { name: 'En Attente', value: 20, color: '#F59E0B' },
-    { name: 'En Retard', value: 5, color: '#EF4444' }
-  ]
-};
