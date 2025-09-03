@@ -10,8 +10,7 @@ import {
   UserCheck,
   Shield,
   Settings,
-  Search,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
@@ -36,7 +35,7 @@ const sidebarItems = [
     path: '/employees',
     subItems: [
       { id: 'employees', label: 'Gestion Employés', icon: UserCheck, path: '/employees' },
-      { id: 'planning', label: 'Planning', icon: Clock, path: '/planning' },
+      { id: 'planning', label: 'Pointage', icon: Clock, path: '/planning' },
       { id: 'roles', label: 'Rôles', icon: Shield, path: '/roles' }
     ]
   },
@@ -63,15 +62,15 @@ export default function Sidebar({ activeSection, onSectionChange, userRole }: Si
 
   return (
     <div className="w-64 shadow-xl border-r bg-white border-gray-200 flex flex-col">
-      {/* Logo */}
+      {/* Logo avec image */}
       <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
-            <LayoutDashboard className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">CleanMada</h1>
-            <p className="text-sm text-gray-500">Agence de Nettoyage</p>
+        <div className="flex items-center space-x-3 flex justify-center">
+          <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+            <img 
+              src="/src/components/Layout/logo.png" 
+              alt="CleanMada Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
       </div>
@@ -97,7 +96,7 @@ export default function Sidebar({ activeSection, onSectionChange, userRole }: Si
                   }
                 }}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${isActive || hasActiveSubItem
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
                     : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                   }`}
               >
@@ -123,11 +122,11 @@ export default function Sidebar({ activeSection, onSectionChange, userRole }: Si
                         key={subItem.id}
                         onClick={() => onSectionChange(subItem.id)}
                         className={`w-full flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 ${isSubActive
-                            ? 'bg-emerald-100 text-emerald-800 border-l-4 border-emerald-500'
+                            ? 'bg-blue-100 text-blue-800 border-l-4 border-blue-500'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                           }`}
-                      >
-                        <SubIcon className={`w-4 h-4 ${isSubActive ? 'text-emerald-600' : 'text-gray-400'}`} />
+                        >
+                        <SubIcon className={`w-4 h-4 ${isSubActive ? 'text-blue-600' : 'text-gray-400'}`} />
                         <span className="text-sm font-medium">{subItem.label}</span>
                       </NavLink>
                     );

@@ -30,7 +30,7 @@ class Paiement
     #[ORM\JoinColumn(nullable: false)]
     private ?Reservation $reservation = null;
 
-    #[ORM\ManyToOne(inversedBy: 'paiement')]
+    #[ORM\ManyToOne(inversedBy: 'paiements')]
     private ?ModePaiement $modePaiement = null;
 
     public function getId(): ?int

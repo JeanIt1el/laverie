@@ -125,3 +125,105 @@ export interface RoleType {
   nom_role: string,
   description_role: string
 }
+
+export interface PointageType {
+  id: number;
+  created_at: string;
+  heure_debut: string;
+  heure_fin: string | null;
+  remarque?: string;
+  employe?: {
+    id: number;
+    nom: string;
+    prenoms: string;
+  };
+}
+
+export interface ServiceType {
+  id: number;
+  denomination: string;
+  description: string;
+  prix: number;
+  created_at: string;
+}
+
+export interface EmployeType {
+  id: number;
+  services: ServiceType[]; // 
+  role: RoleType | null;
+  nom: string;
+  prenoms: string;
+  email: string;
+  phone: string;
+  cin: string;
+  pointages: PointageType[];
+  createdAt: string;
+}
+
+export interface ClientType {
+  id: number;
+  nom_client: string;
+  prenom_client: string;
+  email_client: string;
+  phone_client: string;
+  adresse_client: string;
+}
+
+export interface MaterielType {
+  id: number;
+  nom_materiel: string;
+  type_materiel: string;
+  etat_materiel: string;
+  quantite: number;
+  service_id: number | null;
+  service_nom: string | null;
+  created_at: string;
+}
+
+
+// src/types/ReservationType.ts
+export interface ReservationType {
+  id: number;
+  created_at: string; // Y-m-d H:i:s
+  statut_reservation: 'Payé' | 'En attente' | 'Annulé';
+  montant_total: number;
+  client: {
+    id: number;
+    nom_client: string;
+    prenom_client: string;
+    email_client: string;
+    phone_client: string;
+    adresse_client: string;
+  } | null;
+  services: Array<{
+    id: number;
+    denomination: string; 
+    prix: number;
+  }>;
+  paiements: Array<{
+    id: number;
+    montant: number;
+    date_paiement: string; 
+  }>;
+}
+
+export interface ReservationEmbedded {
+  id: number;
+  statut_reservation: string;
+}
+
+// src/types/ModePaiementType.ts
+export type ModePaiementEmbedded = {
+  id: number;
+  denomination_paie: string;
+  numero: string;
+};
+
+export interface PaiementType {
+  id: number;
+  created_at: string;
+  montant: number;
+  status: string;
+  reservation: ReservationEmbedded | null;
+  mode_paiement: ModePaiementEmbedded | null;
+}

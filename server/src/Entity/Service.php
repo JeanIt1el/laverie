@@ -30,7 +30,7 @@ class Service
      * @var Collection<int, Reservation>
      */
     #[ORM\ManyToMany(targetEntity: Reservation::class, inversedBy: 'services')]
-    private Collection $reservation;
+    private Collection $reservations;
 
     /**
      * @var Collection<int, Materiel>
@@ -41,7 +41,7 @@ class Service
     /**
      * @var Collection<int, Employe>
      */
-    #[ORM\OneToMany(targetEntity: Employe::class, mappedBy: 'service')]
+    #[ORM\ManyToMany(targetEntity: Employe::class, mappedBy: 'services')]
     private Collection $employes;
 
     #[ORM\Column]
@@ -49,7 +49,7 @@ class Service
 
     public function __construct()
     {
-        $this->reservation = new ArrayCollection();
+        $this->reservations = new ArrayCollection();
         $this->materiels = new ArrayCollection();
         $this->employes = new ArrayCollection();
     }
@@ -67,7 +67,7 @@ class Service
     public function setDenomination(string $denomination): static
     {
         $this->denomination = $denomination;
-
+        
         return $this;
     }
 
@@ -95,18 +95,15 @@ class Service
         return $this;
     }
 
-    /**
-     * @return Collection<int, Reservation>
-     */
-    public function getReservation(): Collection
+    public function getReservations(): Collection
     {
-        return $this->reservation;
+        return $this->reservations;
     }
 
     public function addReservation(Reservation $reservation): static
     {
-        if (!$this->reservation->contains($reservation)) {
-            $this->reservation->add($reservation);
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
         }
 
         return $this;
@@ -114,14 +111,11 @@ class Service
 
     public function removeReservation(Reservation $reservation): static
     {
-        $this->reservation->removeElement($reservation);
-
+        $this->reservations->removeElement($reservation);
         return $this;
     }
 
-    /**
-     * @return Collection<int, Materiel>
-     */
+
     public function getMateriels(): Collection
     {
         return $this->materiels;
@@ -140,7 +134,7 @@ class Service
     public function removeMateriel(Materiel $materiel): static
     {
         if ($this->materiels->removeElement($materiel)) {
-            // set the owning side to null (unless already changed)
+
             if ($materiel->getService() === $this) {
                 $materiel->setService(null);
             }
@@ -149,9 +143,7 @@ class Service
         return $this;
     }
 
-    /**
-     * @return Collection<int, Employe>
-     */
+
     public function getEmployes(): Collection
     {
         return $this->employes;
@@ -161,7 +153,7 @@ class Service
     {
         if (!$this->employes->contains($employe)) {
             $this->employes->add($employe);
-            $employe->setService($this);
+            $employe->addService($this);
         }
 
         return $this;
@@ -170,12 +162,8 @@ class Service
     public function removeEmploye(Employe $employe): static
     {
         if ($this->employes->removeElement($employe)) {
-            // set the owning side to null (unless already changed)
-            if ($employe->getService() === $this) {
-                $employe->setService(null);
-            }
+            $employe->removeService($this);
         }
-
         return $this;
     }
 
