@@ -24,21 +24,20 @@ class Employe
     #[ORM\Column(length: 255)]
     private ?string $email = null;
 
-    #[ORM\Column]
-    private ?int $phone = null;
+    #[ORM\Column(length: 25)]
+    private ?string $phone = null;
 
     #[ORM\Column(length: 100)]
     private ?string $cin = null;
 
-    #[ORM\ManyToOne(inversedBy: 'employes')]
-    private ?Service $service = null;
+    #[ORM\ManyToMany(targetEntity: Service::class, inversedBy: 'employes')]
+    #[ORM\JoinTable(name: 'employe_service')]
+    private Collection $services;
 
     #[ORM\ManyToOne(inversedBy: 'emploie')]
     private ?Role $role = null;
 
-    /**
-     * @var Collection<int, Pointage>
-     */
+    
     #[ORM\OneToMany(targetEntity: Pointage::class, mappedBy: 'employe')]
     private Collection $pointages;
 
@@ -47,6 +46,7 @@ class Employe
 
     public function __construct()
     {
+        $this->services = new ArrayCollection();
         $this->pointages = new ArrayCollection();
     }
 
@@ -91,12 +91,12 @@ class Employe
         return $this;
     }
 
-    public function getPhone(): ?int
+    public function getPhone(): ?string
     {
         return $this->phone;
     }
 
-    public function setPhone(int $phone): static
+    public function setPhone(string $phone): static
     {
         $this->phone = $phone;
 
@@ -115,18 +115,6 @@ class Employe
         return $this;
     }
 
-    public function getService(): ?Service
-    {
-        return $this->service;
-    }
-
-    public function setService(?Service $service): static
-    {
-        $this->service = $service;
-
-        return $this;
-    }
-
     public function getRole(): ?Role
     {
         return $this->role;
@@ -135,13 +123,32 @@ class Employe
     public function setRole(?Role $role): static
     {
         $this->role = $role;
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Pointage>
-     */
+    public function getServices(): Collection
+    {
+        return $this->services;
+    }
+
+    public function addService(Service $service): static
+    {
+        if (!$this->services->contains($service)) {
+            $this->services->add($service);
+            $service->addEmploye($this);
+        }
+        return $this;
+    }
+
+    public function removeService(Service $service): static
+    {
+        if ($this->services->removeElement($service)) {
+            $service->removeEmploye($this);
+        }
+        return $this;
+    }
+
+
     public function getPointages(): Collection
     {
         return $this->pointages;
@@ -153,14 +160,14 @@ class Employe
             $this->pointages->add($pointage);
             $pointage->setEmploye($this);
         }
-
+        
         return $this;
     }
 
     public function removePointage(Pointage $pointage): static
     {
         if ($this->pointages->removeElement($pointage)) {
-            // set the owning side to null (unless already changed)
+
             if ($pointage->getEmploye() === $this) {
                 $pointage->setEmploye(null);
             }

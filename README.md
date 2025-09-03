@@ -141,4 +141,6 @@ public/                 # Point d’entrée du site (index.php)
 - 👤 @Hajatiana-0407
 - 👤 @Fabrice Faniry RANDT
 
+npx serve -s build
+
 

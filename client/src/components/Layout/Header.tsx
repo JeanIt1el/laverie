@@ -13,7 +13,7 @@ const roleLabels = {
 
 export default function Header({ userRole, userName }: HeaderProps) {
   return (
-    <header className="shadow-sm border-b bg-white border-gray-200 px-6 py-4">
+    <header className="shadow-sm border-b bg-white border-gray-200 px-6 py-1">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <h2 className="text-2xl font-bold text-gray-900">Tableau de Bord</h2>

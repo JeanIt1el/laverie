@@ -375,7 +375,8 @@ export const chartData = {
     { name: 'Mar', value: 48 },
     { name: 'Avr', value: 61 },
     { name: 'Mai', value: 55 },
-    { name: 'Jun', value: 67 }
+    { name: 'Jun', value: 67 },
+    { name: 'Juillet', value: 43 }
   ],
   revenue: [
     { name: 'Jan', value: 18400000 },
@@ -383,7 +384,8 @@ export const chartData = {
     { name: 'Mar', value: 19800000 },
     { name: 'Avr', value: 25500000 },
     { name: 'Mai', value: 23800000 },
-    { name: 'Jun', value: 28200000 }
+    { name: 'Jun', value: 28200000 },
+    { name: 'Juillet', value: 18200000 }
   ],
   payments: [
     { name: 'Payé', value: 75, color: '#10B981' },

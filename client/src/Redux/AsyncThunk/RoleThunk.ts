@@ -38,7 +38,7 @@ export const createRole = createAsyncThunk<RoleType, { nom_role: string; descrip
   'Role/update',
   async ({ id, ...updateData }, { rejectWithValue }) => {
     try {
-      const response = await axios.patch(apiUrls(`api/role/${id}`), updateData);
+      const response = await axios.put(apiUrls(`api/role/${id}`), updateData);
       return response.data as RoleType;
     } catch (error) {
       console.error("Erreur lors de la mise à jour du rôle :", error);

@@ -17,7 +17,7 @@ class Reservation
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable', nullable: false)]
     private ?\DateTimeImmutable $created_At = null;
 
     #[ORM\Column(length: 255)]
@@ -39,7 +39,7 @@ class Reservation
     /**
      * @var Collection<int, Service>
      */
-    #[ORM\ManyToMany(targetEntity: Service::class, mappedBy: 'reservation')]
+    #[ORM\ManyToMany(targetEntity: Service::class, mappedBy: 'reservations')]
     private Collection $services;
 
     public function __construct()
