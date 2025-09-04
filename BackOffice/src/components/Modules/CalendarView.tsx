@@ -1,6 +1,6 @@
 import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
+import dayGridPlugin from '@fullcalendar/daygrid/index.js';
+import timeGridPlugin from '@fullcalendar/timegrid/index.js';
 import { PointageType } from '../../types';
 
 interface CalendarViewProps {

@@ -1,11 +1,16 @@
 import React from 'react';
-import { Play, Shield, Clock, Truck, Star } from 'lucide-react';
+import { PhoneCall, Shield, Clock, Truck, Star } from 'lucide-react';
+import  user  from "../data/user.webp";
+import  windows  from "../data/windows-11-bloom-5k-ht.jpg";
+import { useNavigate } from "react-router-dom";
 
 interface HeroProps {
   onBooking: () => void;
 }
 
 const Hero: React.FC<HeroProps> = ({ onBooking }) => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white overflow-hidden">
       <div className="absolute inset-0 bg-black opacity-20"></div>
@@ -14,7 +19,7 @@ const Hero: React.FC<HeroProps> = ({ onBooking }) => {
       <div className="absolute top-20 left-10 w-20 h-20 bg-cyan-400 rounded-full opacity-20 animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-32 h-32 bg-blue-400 rounded-full opacity-10 animate-bounce"></div>
       
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="space-y-8">
@@ -54,9 +59,11 @@ const Hero: React.FC<HeroProps> = ({ onBooking }) => {
                 <span>Réserver Maintenant</span>
                 <span className="text-2xl">🚀</span>
               </button>
-              <button className="flex items-center justify-center space-x-2 bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300">
-                <Play size={20} />
-                <span>Voir Notre Vidéo</span>
+              <button 
+                onClick={() => navigate("/contact")}
+                className="flex items-center justify-center space-x-2 bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300">
+                <PhoneCall size={20} />
+                <span>Contactez-nous</span>
               </button>
             </div>
 
@@ -96,7 +103,8 @@ const Hero: React.FC<HeroProps> = ({ onBooking }) => {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl transform rotate-3"></div>
             <img
-              src="https://images.pexels.com/photos/5591581/pexels-photo-5591581.jpeg?auto=compress&cs=tinysrgb&w=800"
+              width="800px"
+              src={windows}
               alt="Service de nettoyage professionnel CleanCare"
               className="relative rounded-2xl shadow-2xl w-full h-96 object-cover"
             />
@@ -105,7 +113,7 @@ const Hero: React.FC<HeroProps> = ({ onBooking }) => {
             <div className="absolute -bottom-6 -left-6 bg-white rounded-lg p-4 shadow-xl max-w-xs">
               <div className="flex items-center space-x-2 mb-2">
                 <img
-                  src="https://images.pexels.com/photos/1065084/pexels-photo-1065084.jpeg?auto=compress&cs=tinysrgb&w=100"
+                  src={user}
                   alt="Client satisfait"
                   className="w-10 h-10 rounded-full object-cover"
                 />

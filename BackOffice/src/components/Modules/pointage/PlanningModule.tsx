@@ -16,9 +16,9 @@ import PointageForm from './PointageForm';
 
 // FullCalendar
 import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import frLocale from '@fullcalendar/core/locales/fr';
+import dayGridPlugin from '@fullcalendar/daygrid/index.js';
+import timeGridPlugin from '@fullcalendar/timegrid/index.js';
+import frLocale from '@fullcalendar/core/locales/fr.js';
 
 export default function PlanningModule() {
   const dispatch = useDispatch<AppDispatchType>();

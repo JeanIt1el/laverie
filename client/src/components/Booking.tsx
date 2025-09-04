@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Check } from 'lucide-react';
-import { services } from '../data/mockData';
+import { getServicesFromApi } from '../data/mockData';
+import axios from 'axios';
+import { apiUrls } from '../utils/api';
 
 const Booking: React.FC = () => {
   const [step, setStep] = useState(1);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [success, setSuccess] = useState(false);
+
+  // Define the Service type or import it if available
+  type Service = {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    // add other fields if needed
+  };
+
+  const [services, setServices] = useState<Service[]>([]);
   const [bookingData, setBookingData] = useState({
     pickupDate: '',
     pickupTime: '',
@@ -15,6 +29,10 @@ const Booking: React.FC = () => {
     notes: ''
   });
 
+  useEffect(() => {
+    getServicesFromApi().then(setServices);
+  }, []);
+
   const handleServiceToggle = (serviceId: string) => {
     setSelectedServices(prev => 
       prev.includes(serviceId)
@@ -23,11 +41,11 @@ const Booking: React.FC = () => {
     );
   };
 
-  const calculateTotal = () => {
-    return services
-      .filter(service => selectedServices.includes(service.id))
-      .reduce((total, service) => total + service.price, 0);
-  };
+  // const calculateTotal = () => {
+  //   return services
+  //     .filter(service => selectedServices.includes(service.id))
+  //     .reduce((total, service) => total + service.price, 0);
+  // };
 
   const nextStep = () => {
     if (step < 4) setStep(step + 1);
@@ -35,6 +53,36 @@ const Booking: React.FC = () => {
 
   const prevStep = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const handleConfirm = async () => {
+    const payload = {
+      created_at: bookingData.pickupDate,
+      pickup_time: bookingData.pickupTime,
+      address: bookingData.address,
+      phone: bookingData.phone,
+      email: bookingData.email,
+      name: bookingData.name,
+      notes: bookingData.notes,
+      statut_reservation: "en attente",
+      montant_total: services
+        .filter((s: { id: string; }) => selectedServices.includes(s.id))
+        .reduce((total: any, s: { price: any; }) => total + s.price, 0),
+      client_id: 1, // à adapter
+      services: selectedServices,
+    };
+
+    try {
+      const res = await axios.post(apiUrls("api/reservation"), payload);
+      setSuccess(true);
+      // Optionnel : rediriger ou afficher un message
+    } catch (err: any) {
+      if (err.response) {
+        console.error('Erreur backend:', err.response.data);
+      } else {
+        console.error('Erreur lors de la réservation:', err);
+      }
+    }
   };
 
   const renderStep = () => {
@@ -46,15 +94,15 @@ const Booking: React.FC = () => {
               Choisissez vos services
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {services.map((service) => (
+              {services.map((service: { id: React.Key | null | undefined; name: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; description: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; price: { toLocaleString: () => string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined; }; }) => (
                 <div
                   key={service.id}
                   className={`p-6 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
-                    selectedServices.includes(service.id)
+                    selectedServices.includes(String(service.id))
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
-                  onClick={() => handleServiceToggle(service.id)}
+                  onClick={() => handleServiceToggle(String(service.id))}
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -64,7 +112,7 @@ const Booking: React.FC = () => {
                         {service.price.toLocaleString()} F
                       </p>
                     </div>
-                    {selectedServices.includes(service.id) && (
+                    {selectedServices.includes(String(service.id)) && (
                       <Check className="text-blue-500" size={24} />
                     )}
                   </div>
@@ -112,7 +160,6 @@ const Booking: React.FC = () => {
                     <option value="12:00">12:00</option>
                     <option value="14:00">14:00</option>
                     <option value="16:00">16:00</option>
-                    <option value="18:00">18:00</option>
                   </select>
                 </div>
               </div>
@@ -292,8 +339,8 @@ const Booking: React.FC = () => {
               Précédent
             </button>
             <button
-              onClick={nextStep}
-              disabled={step === 4}
+              onClick={step === 4 ? handleConfirm : nextStep}
+              disabled={step === 4 ? false : step === 4}
               className={`px-6 py-3 rounded-lg font-semibold ${
                 step === 4
                   ? 'bg-green-600 text-white hover:bg-green-700'
@@ -304,6 +351,12 @@ const Booking: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {success && (
+          <div className="text-green-600 font-bold mb-4">
+            Réservation enregistrée avec succès !
+          </div>
+        )}
       </div>
     </section>
   );

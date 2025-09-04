@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Shirt, Zap, Sparkles, Clock, Home, Droplets } from 'lucide-react';
-import { services } from '../data/mockData';
+import { getServicesFromApi } from '../data/mockData';
 
 const iconMap = {
   Shirt,
@@ -11,11 +11,30 @@ const iconMap = {
   Droplets
 };
 
-interface ServicesProps {
-  onBooking: () => void;
+interface Service {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  duration: string;
+  icon: keyof typeof iconMap;
 }
 
-const Services: React.FC<ServicesProps> = ({ onBooking }) => {
+const Services: React.FC<{ onBooking: () => void }> = ({ onBooking }) => {
+  const [services, setServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    getServicesFromApi().then(apiServices => {
+      setServices(
+        apiServices.map(s => ({
+          ...s,
+          id: Number(s.id),
+          icon: s.icon as keyof typeof iconMap
+        }))
+      );
+    });
+  }, []);
+
   return (
     <section className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -32,7 +51,7 @@ const Services: React.FC<ServicesProps> = ({ onBooking }) => {
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => {
-            const IconComponent = iconMap[service.icon as keyof typeof iconMap];
+            const IconComponent = iconMap[service.icon];
             return (
               <div
                 key={service.id}

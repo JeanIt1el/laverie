@@ -10,7 +10,9 @@ export const getAllReservations = createAsyncThunk<ReservationType[]>(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(apiUrls('api/reservation'));
+      // console.log(response.data);
       return response.data as ReservationType[];
+    
     } catch (error) {
       return rejectWithValue('Impossible de récupérer les réservations');
     }
