@@ -7,6 +7,20 @@ export interface Service {
   icon: string;
 }
 
+export interface Payload {
+  client_id: number, 
+  created_at: string,
+  pickup_time: string,
+  address: string,
+  phone: string,
+  email: string,
+  name: string,
+  notes: string,
+  statut_reservation: "en attente",
+  montant_total: string,
+  services: string[],
+}
+
 export interface Order {
   id: string;
   services: Service[];

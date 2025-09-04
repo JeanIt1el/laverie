@@ -55,7 +55,28 @@ const Booking: React.FC = () => {
     if (step > 1) setStep(step - 1);
   };
 
+const createClient = async () => {
+  const nameParts = bookingData.name.trim().split(' ');
+  const prenom_client = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : nameParts[0];
+  const nom_client = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+
+  const clientPayload = {
+    nom_client: nom_client || 'Inconnu',           // max 255 chars
+    prenom_client: prenom_client || 'Inconnu',     // max 100 chars
+    email_client: bookingData.email,                // max 255 chars (vérifier format email)
+    phone_client: bookingData.phone || '00000000', // max 20 chars
+    adresse_client: bookingData.address || '',      // max 100 chars
+  };
+
+  const res = await axios.post(apiUrls('api/client'), clientPayload);
+  return res.data.id;
+};
+
+
+
   const handleConfirm = async () => {
+  try {
+    const clientId = await createClient();
     const payload = {
       created_at: bookingData.pickupDate,
       pickup_time: bookingData.pickupTime,
@@ -66,24 +87,49 @@ const Booking: React.FC = () => {
       notes: bookingData.notes,
       statut_reservation: "en attente",
       montant_total: services
-        .filter((s: { id: string; }) => selectedServices.includes(s.id))
-        .reduce((total: any, s: { price: any; }) => total + s.price, 0),
-      client_id: 1, // à adapter
+        .filter(s => selectedServices.includes(s.id))
+        .reduce((total, s) => total + s.price, 0),
+      client_id: clientId,
       services: selectedServices,
     };
 
-    try {
-      const res = await axios.post(apiUrls("api/reservation"), payload);
-      setSuccess(true);
-      // Optionnel : rediriger ou afficher un message
-    } catch (err: any) {
-      if (err.response) {
-        console.error('Erreur backend:', err.response.data);
-      } else {
-        console.error('Erreur lors de la réservation:', err);
-      }
-    }
-  };
+    await axios.post(apiUrls("api/reservation"), payload);
+    setSuccess(true);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
+  // const handleConfirm = async () => {
+  //   const payload = {
+  //     created_at: bookingData.pickupDate,
+  //     pickup_time: bookingData.pickupTime,
+  //     address: bookingData.address,
+  //     phone: bookingData.phone,
+  //     email: bookingData.email,
+  //     name: bookingData.name,
+  //     notes: bookingData.notes,
+  //     statut_reservation: "en attente",
+  //     montant_total: services
+  //       .filter(s => selectedServices.includes(s.id))
+  //       .reduce((total, s) => total + s.price, 0),
+  //     client_id: 1, // à remplacer par l'ID du client connecté si tu as l'authentification
+  //     services: selectedServices,
+  //   };
+
+  //   try {
+  //     const res = await axios.post(apiUrls("api/reservation"), payload);
+  //     setSuccess(true);
+  //     // Optionnel : rediriger ou afficher un message
+  //   } catch (err: any) {
+  //     if (err.response) {
+  //       console.error('Erreur backend:', err.response.data);
+  //     } else {
+  //       console.error('Erreur lors de la réservation:', err);
+  //     }
+  //   }
+  // };
 
   const renderStep = () => {
     switch (step) {
@@ -353,7 +399,7 @@ const Booking: React.FC = () => {
         </div>
 
         {success && (
-          <div className="text-green-600 font-bold mb-4">
+          <div className="text-green-600 text-center font-bold mb-4">
             Réservation enregistrée avec succès !
           </div>
         )}
@@ -363,3 +409,7 @@ const Booking: React.FC = () => {
 };
 
 export default Booking;
+
+function createClient() {
+  throw new Error('Function not implemented.');
+}

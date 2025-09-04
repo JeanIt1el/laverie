@@ -36,3 +36,16 @@ export const teamMembers = [
   }
 ];
 
+export async function getClientReservations(clientId: number) {
+  const res = await axios.get(`http://127.0.0.1:8000/api/client/${clientId}/reservations`);
+  return res.data.map((reservation: any) => ({
+    id: reservation.id,
+    status: reservation.statut_reservation,
+    date: reservation.created_at,
+    services: reservation.services.map((s: any) => s.denomination),
+    total: reservation.montant_total,
+    pickupDate: reservation.pickup_date,
+    deliveryDate: reservation.delivery_date
+  }));
+}
+

@@ -93,8 +93,8 @@ final class ReservationController extends AbstractController
         \App\Repository\ServiceRepository $serviceRepo
     ): Response {
         $data = json_decode($request->getContent(), true);
-        $data = json_decode($request->getContent(), true);
-        error_log(print_r($data, true)); // vérifie dans logs Symfony
+        
+        // error_log(print_r($data, true)); // vérifie dans logs Symfony
 
         if (empty($data['statut_reservation'])) {
             return $this->json(['error' => 'statut_reservation is required'], Response::HTTP_BAD_REQUEST);
@@ -114,12 +114,14 @@ final class ReservationController extends AbstractController
         if (!$createdAt) {
             return $this->json(['error' => 'Date invalide'], Response::HTTP_BAD_REQUEST);
         }
-$reservation->setCreatedAt($createdAt);
+
+        $reservation->setCreatedAt($createdAt);
         $reservation->setStatutReservation($data['statut_reservation']);
         $reservation->setMontantTotal((float) ($data['montant_total'] ?? 0));
         $reservation->setClient($client);
 
         // ✅ Associer les services via leurs IDs
+
         if (!empty($data['services']) && is_array($data['services'])) {
             foreach ($data['services'] as $serviceId) {
                 $service = $serviceRepo->find($serviceId);
@@ -152,7 +154,7 @@ $reservation->setCreatedAt($createdAt);
                 'prix' => $s->getPrix(),
             ])->toArray(),
         ], Response::HTTP_CREATED);
-}
+    }
 
     // UPDATE
     #[Route('/{id}', name: 'api_reservation_update', methods: ['PUT', 'PATCH'])]

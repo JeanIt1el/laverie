@@ -1,38 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Package, CreditCard, MapPin, Bell, Settings, LogOut, Clock, CheckCircle } from 'lucide-react';
+import { getClientReservations } from '../data/mockData';
 
 const Account: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [clientId, setClientId] = useState<number | null>(null);
+  const [orders, setOrders] = useState<any[]>([]);
 
-  const mockOrders = [
-    {
-      id: 'ORD-001',
-      status: 'delivered',
-      date: '2024-01-15',
-      services: ['Lavage Standard', 'Repassage'],
-      total: 4000,
-      pickupDate: '2024-01-16',
-      deliveryDate: '2024-01-17'
-    },
-    {
-      id: 'ORD-002',
-      status: 'in_progress',
-      date: '2024-01-20',
-      services: ['Nettoyage à Sec'],
-      total: 4000,
-      pickupDate: '2024-01-21',
-      deliveryDate: '2024-01-23'
-    },
-    {
-      id: 'ORD-003',
-      status: 'ready',
-      date: '2024-01-25',
-      services: ['Lavage Express'],
-      total: 3500,
-      pickupDate: '2024-01-26',
-      deliveryDate: '2024-01-26'
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    const id = parseInt(e.target.clientId.value);
+    setClientId(id);
+    localStorage.setItem('clientId', String(id));
+  };
+
+  useEffect(() => {
+    const storedId = localStorage.getItem('clientId');
+    if (storedId) {
+      setClientId(parseInt(storedId));
     }
-  ];
+  }, []);
+
+  useEffect(() => {
+    if (clientId) {
+      getClientReservations(clientId).then(setOrders);
+    }
+  }, [clientId]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -100,7 +93,7 @@ const Account: React.FC = () => {
                 Commandes récentes
               </h4>
               <div className="space-y-4">
-                {mockOrders.slice(0, 3).map((order) => (
+                {orders.slice(0, 3).map((order) => (
                   <div key={order.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -133,7 +126,7 @@ const Account: React.FC = () => {
             </h3>
             
             <div className="space-y-6">
-              {mockOrders.map((order) => (
+              {orders.map((order) => (
                 <div key={order.id} className="border border-gray-200 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -328,7 +321,17 @@ const Account: React.FC = () => {
           
           {/* Main Content */}
           <div className="lg:w-3/4">
-            {renderContent()}
+            {!clientId ? (
+              <form onSubmit={handleSubmit}>
+                <label>
+                  ID du client:
+                  <input type="number" name="clientId" />
+                </label>
+                <button type="submit">Afficher mes commandes</button>
+              </form>
+            ) : (
+              renderContent()
+            )}
           </div>
         </div>
       </div>
