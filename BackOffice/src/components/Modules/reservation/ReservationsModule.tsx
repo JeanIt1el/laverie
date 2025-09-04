@@ -1,4 +1,3 @@
-// src/pages/Reservations/ReservationsModule.tsx
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -13,8 +12,8 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  ChevronLeft,
-  ChevronRight,
+  List,
+  Grid,
 } from 'lucide-react';
 import {
   getAllReservations,
@@ -25,7 +24,6 @@ import {
 import { getAllServices } from '../../../Redux/AsyncThunk/ServiceThunk';
 import { getEmployeesByServiceIds } from '../../../Redux/AsyncThunk/EmployeThunk';
 import { getReservationState } from '../../../Redux/Slice/ReservationSlice';
-import { getServiceState } from '../../../Redux/Slice/ServiceSlice';
 import { getEmployeState } from '../../../Redux/Slice/EmployeSlice';
 import { AppDispatchType } from '../../../Redux/Store';
 import ReservationForm from './ReservationForm';
@@ -34,29 +32,18 @@ export default function ReservationsModule() {
   const dispatch = useDispatch<AppDispatchType>();
 
   const { datas: reservations, action: reservationAction } = useSelector(getReservationState);
-  const { datas: services } = useSelector(getServiceState);
   const { datas: employees } = useSelector(getEmployeState);
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'En attente' | 'En cours d\'exécution' | 'Terminé' | 'Annulé'>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState<any>(null);
   const [expandedReservations, setExpandedReservations] = useState<Set<number>>(new Set());
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
-  const [calendarDate, setCalendarDate] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
-  // CRUD
   useEffect(() => {
     dispatch(getAllReservations());
     dispatch(getAllServices());
   }, [dispatch]);
-
-  useEffect(() => {
-    const serviceIds = reservations.flatMap((r) => r.services?.map((s: any) => s.id) || []);
-    if (serviceIds.length > 0) {
-      dispatch(getEmployeesByServiceIds([...new Set(serviceIds)]));
-    }
-  }, [dispatch, reservations]);
 
   const openModal = (r?: any) => {
     setEditingReservation(r || null);
@@ -68,13 +55,7 @@ export default function ReservationsModule() {
     setEditingReservation(null);
   };
 
-  const handleSubmit = async (payload: {
-    statut_reservation: string;
-    montant_total: number;
-    client_id: number;
-    services: number[];
-    created_at: string;
-  }) => {
+  const handleSubmit = async (payload: any) => {
     if (editingReservation) {
       await dispatch(updateReservation({ id: editingReservation.id, ...payload }));
     } else {
@@ -94,7 +75,7 @@ export default function ReservationsModule() {
   };
 
   const toggleExpand = (id: number) => {
-    setExpandedReservations(prev => {
+    setExpandedReservations((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -107,7 +88,7 @@ export default function ReservationsModule() {
   );
 
   const badge = (status: string) => {
-    const base = 'px-3 py-1 text-xs font-medium rounded-full';
+    const base = 'px-3 py-1 rounded-full text-xs font-semibold';
     switch (status) {
       case 'Terminé':
         return `${base} bg-green-100 text-green-800`;
@@ -115,7 +96,6 @@ export default function ReservationsModule() {
         return `${base} bg-yellow-100 text-yellow-800`;
       case 'Annulé':
         return `${base} bg-red-100 text-red-800`;
-      case 'En attente':
       default:
         return `${base} bg-blue-100 text-blue-800`;
     }
@@ -123,292 +103,259 @@ export default function ReservationsModule() {
 
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString('fr-FR', {
-      month: 'short',
       day: 'numeric',
+      month: 'short',
       year: 'numeric',
     });
 
   const fmtCurrency = (amount: number) => `${amount.toLocaleString()} Ar`;
 
-  // CALENDRIER
-  const renderCalendar = () => {
-    const year = calendarDate.getFullYear();
-    const month = calendarDate.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+  return (
+    <div className="p-6 max-w-6xl mx-auto">
+      {/* Header + Filters + View toggle */}
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-4xl font-extrabold text-gray-900">Gestion des Réservations</h1>
+          <p className="text-gray-600 mt-1">Suivi des contrats et interventions</p>
+        </div>
 
-    const cells = [];
-    const blanks = Array((firstDay + 6) % 7).fill(null);
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const day = new Date(year, month, d);
-      const key = day.toISOString().slice(0, 10);
-      const dayRes = reservations.filter(r => r.created_at?.slice(0, 10) === key);
-      cells.push({ date: day, reservations: dayRes });
-    }
-
-    const weeks = [];
-    const allCells = [...blanks, ...cells];
-    for (let i = 0; i < allCells.length; i += 7) {
-      weeks.push(allCells.slice(i, i + 7));
-    }
-
-    return (
-      <div className="grid grid-cols-7 gap-1 text-center text-sm">
-        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
-          <div key={day} className="font-semibold text-gray-600 py-2">{day}</div>
-        ))}
-        {weeks.map((week, idx) =>
-          week.map((cell, idx2) => {
-            if (!cell) return <div key={`blank-${idx}-${idx2}`} />;
-            const isToday = cell.date.toDateString() === new Date().toDateString();
-            return (
-              <div
-                key={cell.date.toISOString()}
-                className={`border rounded-md p-2 cursor-pointer hover:bg-blue-50 ${isToday ? 'bg-blue-100' : ''}`}
-                onClick={() => setSelectedDay(cell.date)}
-              >
-                <div className="font-bold">{cell.date.getDate()}</div>
-                {cell.reservations.length > 0 && (
-                  <div className="mt-1 text-xs bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center mx-auto">
-                    {cell.reservations.length}
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
-    );
-  };
-
-  const DayModal = () => {
-    if (!selectedDay) return null;
-    const dayKey = selectedDay.toISOString().slice(0, 10);
-    const dayRes = reservations.filter(r => r.created_at?.slice(0, 10) === dayKey);
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            Réservations du {selectedDay.toLocaleDateString('fr-FR')}
-          </h3>
-          {dayRes.length ? (
-            <ul className="space-y-2 max-h-60 overflow-y-auto">
-              {dayRes.map(r => (
-                <li key={r.id} className="border-b pb-2">
-                  <span className="font-semibold">#{r.id}</span> – {r.client?.nom_client} {r.client?.prenom_client}
-                  <p className="text-sm text-gray-600">{r.statut_reservation}</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500">Aucune réservation ce jour-là.</p>
-          )}
-          <button
-            onClick={() => setSelectedDay(null)}
-            className="mt-4 w-full bg-blue-500 text-white rounded py-2"
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as any)}
+            className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-600 flex-grow sm:flex-grow-0"
           >
-            Fermer
+            <option value="all">Tous</option>
+            <option value="En attente">En attente</option>
+            <option value="En cours d'exécution">En cours d'exécution</option>
+            <option value="Terminé">Terminé</option>
+            <option value="Annulé">Annulé</option>
+          </select>
+
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+            <button
+              className={`px-4 py-2 flex items-center gap-2 transition-colors ${
+                viewMode === 'list' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              onClick={() => setViewMode('list')}
+              aria-label="Vue liste"
+              title="Vue liste"
+            >
+              <List className="w-5 h-5" />
+              Liste
+            </button>
+            <button
+              className={`px-4 py-2 flex items-center gap-2 transition-colors ${
+                viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+              onClick={() => setViewMode('grid')}
+              aria-label="Vue grille"
+              title="Vue grille"
+            >
+              <Grid className="w-5 h-5" />
+              Grille
+            </button>
+          </div>
+
+          <button
+            onClick={() => openModal()}
+            className="bg-indigo-600 text-white rounded-lg px-5 py-2 hover:bg-indigo-700 flex items-center justify-center gap-2
+            font-semibold transition-shadow shadow-md hover:shadow-lg flex-shrink-0"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nouvelle réservation</span>
           </button>
         </div>
       </div>
-    );
-  };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Gestion des Réservations</h2>
-          <p className="text-gray-600">Gérez les contrats de nettoyage et interventions</p>
-        </div>
-        <button
-          onClick={() => openModal()}
-          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg hover:shadow-lg flex items-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nouvelle Réservation</span>
-        </button>
-      </div>
-
-      {/* Vue Toggle */}
-      <div className="flex space-x-4 mb-4">
-        <button
-          className={`px-4 py-2 rounded-lg ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-          onClick={() => setViewMode('list')}
-        >
-          Vue Liste
-        </button>
-        <button
-          className={`px-4 py-2 rounded-lg ${viewMode === 'calendar' ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-          onClick={() => setViewMode('calendar')}
-        >
-          Vue Calendrier
-        </button>
-      </div>
-
-      {/* Filtres */}
-      <div className="rounded-xl shadow-sm border p-6 bg-white border-gray-200">
-        <div className="flex items-center justify-between mb-6">
-          {viewMode === 'calendar' && (
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCalendarDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1))}
-                className="p-2 rounded-md hover:bg-gray-100"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <span className="font-semibold">
-                {calendarDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-              </span>
-              <button
-                onClick={() => setCalendarDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1))}
-                className="p-2 rounded-md hover:bg-gray-100"
-              >
-                <ChevronRight size={20} />
-              </button>
-              <button
-                onClick={() => setCalendarDate(new Date())}
-                className="text-sm bg-blue-500 text-white px-3 py-1 rounded"
-              >
-                Aujourd'hui
-              </button>
-            </div>
+      {/* Vue liste */}
+      {viewMode === 'list' && (
+        <ul className="space-y-6">
+          {reservationAction.isLoading && (
+            <p className="text-center text-gray-500">Chargement des réservations...</p>
           )}
-          <div className="flex items-center space-x-4">
-            <Filter className="w-4 h-4 text-gray-400" />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">Tous</option>
-              <option value="En attente">En attente</option>
-              <option value="En cours d'exécution">En cours d'exécution</option>
-              <option value="Terminé">Terminé</option>
-              <option value="Annulé">Annulé</option>
-            </select>
-          </div>
-        </div>
+          {filtered.map((r) => {
+            const client = r.client;
+            const clientName = client
+              ? `${client.nom_client} ${client.prenom_client}`
+              : 'Client inconnu';
+            const paid = r.paiements?.reduce((sum: number, p: any) => sum + p.montant, 0) ?? 0;
+            const remaining = (r.montant_total ?? 0) - paid;
+            const isExpanded = expandedReservations.has(r.id);
 
-        {/* Contenu selon mode */}
-        {viewMode === 'list' && (
-          <div className="space-y-4">
-            {reservationAction.isLoading && <p className="text-center text-gray-500">Chargement…</p>}
-            {filtered.map((r) => {
-              const clientName = r.client
-                ? `${r.client.nom_client} ${r.client.prenom_client}`
-                : 'Client inconnu';
-
-              const paid = r.paiements?.reduce((sum: number, p: any) => sum + p.montant, 0) ?? 0;
-              const remaining = r.montant_total - paid;
-
-              const assignedEmployees = [
-                ...new Map(
-                  (r.services?.flatMap((s: any) =>
-                    Array.isArray(employees)
-                      ? employees.filter((e) =>
-                          Array.isArray(e.services) && e.services.some((srv: any) => srv.id === s.id)
-                        )
-                      : []
-                  ) || []).map((e) => [e.id, e])
-                ).values(),
-              ];
-
-              const isExpanded = expandedReservations.has(r.id);
-
-              return (
-                <div key={r.id} className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Calendar className="w-8 h-8 bg-blue-500 text-white rounded-full p-1" />
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Réservation #{r.id}</h3>
-                        <p className="text-sm text-gray-600">{clientName}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      <span className={badge(r.statut_reservation)}>{r.statut_reservation}</span>
-                      <button onClick={() => toggleExpand(r.id)} className="text-blue-500 hover:text-blue-700">
-                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                      </button>
+            return (
+              <li
+                key={r.id}
+                className="bg-white rounded-xl shadow-md p-6 flex flex-col lg:flex-row gap-6 hover:shadow-lg transition-shadow"
+              >
+                <div className="flex flex-col gap-4 flex-grow">
+                  <div className="flex items-center gap-4">
+                    <Calendar className="text-indigo-600 w-12 h-12" />
+                    <div>
+                      <h3 className="text-2xl font-semibold text-gray-900 truncate" title={clientName}>
+                        {clientName}
+                      </h3>
+                      {client && (
+                        <div className="mt-1 space-y-0.5 text-sm text-gray-600 max-w-md">
+                          <p><span className="font-medium">Téléphone:</span> {client.phone_client || 'Non renseigné'}</p>
+                          <p><span className="font-medium">Email:</span> {client.email_client || 'Non renseigné'}</p>
+                          <p className="truncate max-w-sm"><span className="font-medium">Adresse:</span> {client.adresse_client || 'Non renseignée'}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {isExpanded && (
-                    <div className="mt-4 space-y-3 text-sm text-gray-700">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>{fmtDate(r.created_at)}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <User className="w-4 h-4" />
-                          <span>{fmtCurrency(paid)} payé</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="w-4 h-4" />
-                          <span>{fmtCurrency(remaining)} reste</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Clock className="w-4 h-4" />
-                          <span>{r.services?.length || 0} service(s)</span>
-                        </div>
-                      </div>
-
-                      {assignedEmployees?.length > 0 && (
-                        <div>
-                          <strong>Employés : </strong>
-                          {assignedEmployees.map((e) => `${e.nom} ${e.prenoms}`).join(', ')}
-                        </div>
-                      )}
-
-                      <div className="flex justify-end space-x-2 pt-2">
-                        <button
-                          onClick={() => openModal(r)}
-                          className="flex items-center space-x-1 px-3 py-1 text-blue-500 hover:bg-blue-50 rounded-lg"
-                        >
-                          <Edit size={16} />
-                          <span>Modifier</span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(r.id)}
-                          className="flex items-center space-x-1 px-3 py-1 text-red-500 hover:bg-red-50 rounded-lg"
-                        >
-                          <Trash2 size={16} />
-                          <span>Supprimer</span>
-                        </button>
-                        {r.statut_reservation === 'En attente' && (
-                          <button
-                            onClick={() => handleConfirm(r.id)}
-                            className="flex items-center space-x-1 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                          >
-                            <CheckCircle size={16} />
-                            <span>Terminer</span>
-                          </button>
-                        )}
-                      </div>
+                    <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50 text-gray-700 text-sm space-y-3">
+                      <p><strong>Date réservation :</strong> {fmtDate(r.created_at)}</p>
+                      <p><strong>Montant total :</strong> {fmtCurrency(r.montant_total)}</p>
+                      <p><strong>Payé :</strong> {fmtCurrency(paid)}</p>
+                      <p><strong>Reste à payer :</strong> {fmtCurrency(remaining)}</p>
+                      <p><strong>Services :</strong> {r.services?.map((s:any) => s.denomination || s.nom).join(', ')}</p>
                     </div>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        )}
 
-        {viewMode === 'calendar' && (
-          <div className="rounded-xl shadow-sm border p-6 bg-white">
-            {renderCalendar()}
-          </div>
-        )}
-      </div>
+                <div className="flex flex-col justify-end gap-4 shrink-0">
+                  <span className={badge(r.statut_reservation)}>{r.statut_reservation}</span>
 
-      {/* Modal formulaire */}
+                  <button
+                    onClick={() => toggleExpand(r.id)}
+                    className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-semibold focus:outline-none"
+                    aria-label={isExpanded ? 'Réduire détails' : 'Afficher détails'}
+                  >
+                    {isExpanded ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+                    {isExpanded ? 'Moins' : 'Plus'}
+                  </button>
+
+                  <button
+                    onClick={() => openModal(r)}
+                    className="bg-blue-100 text-blue-800 rounded-lg px-4 py-1 hover:bg-blue-200 flex items-center gap-2 font-semibold"
+                  >
+                    <Edit className="w-5 h-5" />
+                    Modifier
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(r.id)}
+                    className="bg-red-100 text-red-800 rounded-lg px-4 py-1 hover:bg-red-200 flex items-center gap-2 font-semibold"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    Supprimer
+                  </button>
+
+                  {r.statut_reservation === 'En attente' && (
+                    <button
+                      onClick={() => handleConfirm(r.id)}
+                      className="bg-green-600 text-white rounded-lg px-4 py-1 hover:bg-green-700 flex items-center gap-2 font-semibold"
+                    >
+                      <CheckCircle className="w-5 h-5" />
+                      Terminer
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {/* Vue grille */}
+      {viewMode === 'grid' && (
+        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {reservationAction.isLoading && (
+            <p className="text-center text-gray-500 col-span-full">Chargement des réservations...</p>
+          )}
+
+          {filtered.map((r) => {
+            const client = r.client;
+            const clientName = client
+              ? `${client.nom_client} ${client.prenom_client}`
+              : 'Client inconnu';
+            const paid = r.paiements?.reduce((sum: number, p: any) => sum + p.montant, 0) ?? 0;
+            const remaining = (r.montant_total ?? 0) - paid;
+            const isExpanded = expandedReservations.has(r.id);
+
+            return (
+              <li
+                key={r.id}
+                className="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition-shadow min-h-[360px]"
+              >
+                <div className="flex flex-col flex-grow space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Calendar className="text-indigo-600 w-12 h-12 flex-shrink-0" />
+                    <div>
+                      <h3 className="text-2xl font-semibold text-gray-900 truncate" title={clientName}>
+                        {clientName}
+                      </h3>
+                      {client && (
+                        <div className="mt-1 space-y-1 text-sm text-gray-600 max-w-md">
+                          <p><span className="font-medium">Téléphone:</span> {client.phone_client || 'Non renseigné'}</p>
+                          <p><span className="font-medium">Email:</span> {client.email_client || 'Non renseigné'}</p>
+                          <p className="truncate max-w-sm"><span className="font-medium">Adresse:</span> {client.adresse_client || 'Non renseignée'}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 text-gray-700 text-sm space-y-3">
+                      <p><strong>Date réservation :</strong> {fmtDate(r.created_at)}</p>
+                      <p><strong>Montant total :</strong> {fmtCurrency(r.montant_total)}</p>
+                      <p><strong>Payé :</strong> {fmtCurrency(paid)}</p>
+                      <p><strong>Reste à payer :</strong> {fmtCurrency(remaining)}</p>
+                      <p><strong>Services :</strong> {r.services?.map((s:any) => s.denomination || s.nom).join(', ')}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-gray-200 flex flex-wrap gap-2 justify-end">
+                  <span className={badge(r.statut_reservation)}>{r.statut_reservation}</span>
+
+                  <button
+                    onClick={() => toggleExpand(r.id)}
+                    className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-semibold focus:outline-none"
+                    aria-label={isExpanded ? 'Réduire détails' : 'Afficher détails'}
+                  >
+                    {isExpanded ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+                    {isExpanded ? 'Moins' : 'Plus'}
+                  </button>
+
+                  <button
+                    onClick={() => openModal(r)}
+                    className="bg-blue-100 text-blue-800 rounded-lg px-3 py-1 hover:bg-blue-200 flex items-center gap-2 font-semibold"
+                  >
+                    <Edit className="w-5 h-5" />
+                    Modifier
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(r.id)}
+                    className="bg-red-100 text-red-800 rounded-lg px-3 py-1 hover:bg-red-200 flex items-center gap-2 font-semibold"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    Supprimer
+                  </button>
+
+                  {r.statut_reservation === 'En attente' && (
+                    <button
+                      onClick={() => handleConfirm(r.id)}
+                      className="bg-green-600 text-white rounded-lg px-3 py-1 hover:bg-green-700 flex items-center gap-2 font-semibold"
+                    >
+                      <CheckCircle className="w-5 h-5" />
+                      Terminer
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm px-4">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
             <ReservationForm
               reservation={editingReservation}
@@ -419,9 +366,6 @@ export default function ReservationsModule() {
           </div>
         </div>
       )}
-
-      {/* Modal jour calendrier */}
-      {selectedDay && <DayModal />}
     </div>
   );
 }

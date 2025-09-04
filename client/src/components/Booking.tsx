@@ -399,7 +399,7 @@ const createClient = async () => {
         </div>
 
         {success && (
-          <div className="text-green-600 text-center font-bold mb-4">
+          <div className="text-green-600 text-center py-8 font-bold mb-4">
             Réservation enregistrée avec succès !
           </div>
         )}
@@ -409,7 +409,3 @@ const createClient = async () => {
 };
 
 export default Booking;
-
-function createClient() {
-  throw new Error('Function not implemented.');
-}
