@@ -1,20 +1,27 @@
+// src/components/Header.tsx
 import React, { useState } from 'react';
-import { Menu, X, User, ShoppingCart, Bell } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
+import { authService } from '../service/authService'; // ✅ Importe authService
 
 interface HeaderProps {
-  activeSection: string;
-  setActiveSection: (section: string) => void;
+  onAuthClick: () => void;
+  onBookingClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
+const Header: React.FC<HeaderProps> = ({ onAuthClick, onBookingClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const navItems = [
-    { id: 'home', label: 'Accueil' },
-    { id: 'services', label: 'Services' },
-    { id: 'booking', label: 'Réserver' },
-    { id: 'contact', label: 'Contact' }
-  ];
+  // Détermine si l'utilisateur est connecté
+  const isAuthenticated = authService.isAuthenticated();
+
+  // Action quand on clique sur "Mon Compte" ou "Connexion"
+  const handleAccountClick = () => {
+    if (isAuthenticated) {
+      window.location.href = '/account';
+    } else {
+      onAuthClick();
+    }
+  };
 
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
@@ -22,85 +29,60 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-blue-600">CleanCare</h1>
-            </div>
+            <h1 className="text-2xl font-bold text-blue-600">CleanCare</h1>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Navigation Desktop */}
           <nav className="hidden md:flex space-x-8">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveSection(item.id)}
-                className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
-                  activeSection === item.id
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
-
-          {/* Desktop Right Side */}
-          <div className="hidden md:flex items-center space-x-4">
-            <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
-              <Bell size={20} />
+            <a href="/" className="text-gray-700 hover:text-blue-600 font-medium">Accueil</a>
+            <a href="/about" className="text-gray-700 hover:text-blue-600 font-medium">À propos</a>
+            <a href="/services" className="text-gray-700 hover:text-blue-600 font-medium">Services</a>
+            <a href="/contact" className="text-gray-700 hover:text-blue-600 font-medium">Contact</a>
+            <button
+              onClick={onBookingClick}
+              className="text-green-600 font-semibold"
+            >
+              Réserver
             </button>
-            <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
-              <ShoppingCart size={20} />
-            </button>
-            <button 
-              onClick={() => setActiveSection('account')}
-              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            <button
+              onClick={handleAccountClick}
+              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               <User size={16} />
-              <span>Mon Compte</span>
+              <span>{isAuthenticated ? 'Mon Compte' : 'Connexion'}</span>
             </button>
-          </div>
+          </nav>
 
-          {/* Mobile menu button */}
+          {/* Bouton menu mobile */}
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-600 hover:text-blue-600 transition-colors"
+              className="text-gray-600"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Menu mobile */}
         {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveSection(item.id);
-                    setIsMenuOpen(false);
-                  }}
-                  className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                    activeSection === item.id
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-              <button 
-                onClick={() => {
-                  setActiveSection('account');
-                  setIsMenuOpen(false);
-                }}
-                className="w-full flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mt-4"
+          <div className="md:hidden bg-white border-t">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <a href="/" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-gray-700">Accueil</a>
+              <a href="/about" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-gray-700">À propos</a>
+              <a href="/services" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-gray-700">Services</a>
+              <a href="/contact" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-gray-700">Contact</a>
+              <button
+                onClick={() => { onBookingClick(); setIsMenuOpen(false); }}
+                className="w-full text-left px-3 py-2 text-green-600"
               >
-                <User size={16} />
-                <span>Mon Compte</span>
+                Réserver
+              </button>
+              <button
+                onClick={() => { handleAccountClick(); setIsMenuOpen(false); }}
+                className="w-full text-left px-3 py-2 mt-2 bg-blue-600 text-white rounded-lg"
+              >
+                {isAuthenticated ? 'Mon Compte' : 'Connexion'}
               </button>
             </div>
           </div>

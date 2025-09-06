@@ -32,6 +32,14 @@ class Client
     #[ORM\Column(length: 100)]
     private ?string $adresse_client = null;
 
+    #[ORM\Column(length: 6, nullable: true)]
+    private ?string $otpCode = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeInterface $otpExpiresAt = null;
+
+    
+
     /**
      * @var Collection<int, Reservation>
      */
@@ -135,6 +143,28 @@ class Client
             }
         }
 
+        return $this;
+    }
+    
+    public function getOtpCode(): ?string
+    {
+        return $this->otpCode;
+    }
+
+    public function setOtpCode(?string $otpCode): static
+    {
+        $this->otpCode = $otpCode;
+        return $this;
+    }
+
+    public function getOtpExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->otpExpiresAt;
+    }
+
+    public function setOtpExpiresAt(?\DateTimeImmutable $otpExpiresAt): static
+    {
+        $this->otpExpiresAt = $otpExpiresAt;
         return $this;
     }
 }

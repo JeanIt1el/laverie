@@ -1,8 +1,10 @@
+// src/components/Booking.tsx
 import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, Check } from 'lucide-react';
 import { services } from '../data/mockData';
+import { authService } from '../service/authService';
 
-const Booking: React.FC = () => {
+const Booking = () => {
   const [step, setStep] = useState(1);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [bookingData, setBookingData] = useState({
@@ -15,8 +17,25 @@ const Booking: React.FC = () => {
     notes: ''
   });
 
+  const currentUser = authService.getCurrentUser();
+
+  React.useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      setBookingData({
+        name: `${currentUser.prenom_client} ${currentUser.nom_client}`,
+        email: currentUser.email_client,
+        phone: currentUser.phone_client,
+        address: currentUser.adresse_client,
+        pickupDate: '',
+        pickupTime: '',
+        notes: ''
+      });
+    }
+  }, []);
+
   const handleServiceToggle = (serviceId: string) => {
-    setSelectedServices(prev => 
+    setSelectedServices(prev =>
       prev.includes(serviceId)
         ? prev.filter(id => id !== serviceId)
         : [...prev, serviceId]
@@ -42,9 +61,7 @@ const Booking: React.FC = () => {
       case 1:
         return (
           <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">
-              Choisissez vos services
-            </h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Choisissez vos services</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {services.map((service) => (
                 <div
@@ -77,34 +94,28 @@ const Booking: React.FC = () => {
       case 2:
         return (
           <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">
-              Planifiez votre collecte
-            </h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Planifiez votre collecte</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date de collecte
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date de collecte</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-3 text-gray-400" size={20} />
                   <input
                     type="date"
                     value={bookingData.pickupDate}
                     onChange={(e) => setBookingData({...bookingData, pickupDate: e.target.value})}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Heure de collecte
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Heure de collecte</label>
                 <div className="relative">
                   <Clock className="absolute left-3 top-3 text-gray-400" size={20} />
                   <select
                     value={bookingData.pickupTime}
                     onChange={(e) => setBookingData({...bookingData, pickupTime: e.target.value})}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
                   >
                     <option value="">Choisir l'heure</option>
                     <option value="08:00">08:00</option>
@@ -118,16 +129,14 @@ const Booking: React.FC = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Adresse de collecte
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Adresse de collecte</label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 text-gray-400" size={20} />
                 <textarea
                   value={bookingData.address}
                   onChange={(e) => setBookingData({...bookingData, address: e.target.value})}
                   placeholder="Entrez votre adresse complète"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg"
                   rows={3}
                 />
               </div>
@@ -138,109 +147,48 @@ const Booking: React.FC = () => {
       case 3:
         return (
           <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">
-              Vos informations
-            </h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Vos informations</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nom complet
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
                 <input
                   type="text"
                   value={bookingData.name}
                   onChange={(e) => setBookingData({...bookingData, name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Téléphone
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
                 <input
                   type="tel"
                   value={bookingData.phone}
                   onChange={(e) => setBookingData({...bookingData, phone: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input
                 type="email"
                 value={bookingData.email}
                 onChange={(e) => setBookingData({...bookingData, email: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notes spéciales (optionnel)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Notes spéciales (optionnel)</label>
               <textarea
                 value={bookingData.notes}
                 onChange={(e) => setBookingData({...bookingData, notes: e.target.value})}
                 placeholder="Instructions particulières, allergies, etc."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg"
                 rows={3}
               />
             </div>
           </div>
         );
-
-      // case 4:
-      //   return (
-      //     <div className="space-y-6">
-      //       <h3 className="text-2xl font-bold text-gray-900 mb-6">
-      //         Paiement
-      //       </h3>
-      //       <div className="bg-gray-50 rounded-lg p-6 mb-6">
-      //         <h4 className="text-lg font-semibold text-gray-900 mb-4">
-      //           Récapitulatif de la commande
-      //         </h4>
-      //         <div className="space-y-2">
-      //           {services
-      //             .filter(service => selectedServices.includes(service.id))
-      //             .map(service => (
-      //               <div key={service.id} className="flex justify-between">
-      //                 <span>{service.name}</span>
-      //                 <span>{service.price.toLocaleString()} F</span>
-      //               </div>
-      //             ))
-      //           }
-      //           <div className="border-t pt-2 mt-4">
-      //             <div className="flex justify-between font-bold text-lg">
-      //               <span>Total</span>
-      //               <span>{calculateTotal().toLocaleString()} F</span>
-      //             </div>
-      //           </div>
-      //         </div>
-      //       </div>
-            
-      //       <div className="space-y-4">
-      //         <h4 className="text-lg font-semibold text-gray-900">
-      //           Méthode de paiement
-      //         </h4>
-      //         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      //           <button className="flex items-center justify-center space-x-2 p-4 border-2 border-blue-500 bg-blue-50 rounded-lg">
-      //             <CreditCard size={20} />
-      //             <span>Carte bancaire</span>
-      //           </button>
-      //           <button className="flex items-center justify-center space-x-2 p-4 border-2 border-gray-300 rounded-lg hover:border-gray-400">
-      //             <span>📱</span>
-      //             <span>Mobile Money</span>
-      //           </button>
-      //           <button className="flex items-center justify-center space-x-2 p-4 border-2 border-gray-300 rounded-lg hover:border-gray-400">
-      //             <span>💳</span>
-      //             <span>PayPal</span>
-      //           </button>
-      //         </div>
-      //       </div>
-      //     </div>
-      //   );
 
       default:
         return null;
@@ -250,16 +198,13 @@ const Booking: React.FC = () => {
   return (
     <section className="py-20 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Progress Bar */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-4">
-            {[1, 2, 3, 4].map((stepNumber) => (
+            {[1, 2, 3].map((stepNumber) => (
               <div
                 key={stepNumber}
                 className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  step >= stepNumber
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
+                  step >= stepNumber ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
                 }`}
               >
                 {stepNumber}
@@ -269,16 +214,13 @@ const Booking: React.FC = () => {
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 4) * 100}%` }}
+              style={{ width: `${(step / 3) * 100}%` }}
             ></div>
           </div>
         </div>
 
-        {/* Step Content */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
           {renderStep()}
-          
-          {/* Navigation Buttons */}
           <div className="flex justify-between mt-8">
             <button
               onClick={prevStep}
@@ -293,14 +235,9 @@ const Booking: React.FC = () => {
             </button>
             <button
               onClick={nextStep}
-              disabled={step === 4}
-              className={`px-6 py-3 rounded-lg font-semibold ${
-                step === 4
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className="px-6 py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700"
             >
-              {step === 4 ? 'Confirmer et payer' : 'Suivant'}
+              Suivant
             </button>
           </div>
         </div>
