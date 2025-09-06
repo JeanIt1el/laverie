@@ -102,7 +102,7 @@ final class MaterielController extends AbstractController
 
 
     // ZONE DE MISE A JOUR 
-    #[Route('/{id}', name: 'api_materiel_update', methods: ['PUT', 'PATCH'])]
+    #[Route('/{id}', name: 'api_materiel_update', methods: ['PUT'])]
     public function updateMateriel(Request $request, Materiel $materiel, EntityManagerInterface $em, ServiceRepository $serviceRepository): Response
     {
         $data = json_decode($request->getContent(), true);

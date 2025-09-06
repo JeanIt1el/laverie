@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-blue-600">CleanCare</h1>
+              <h1 className="text-2xl font-bold text-blue-600">Eray Clean</h1>
             </div>
           </div>
 

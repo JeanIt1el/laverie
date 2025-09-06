@@ -12,8 +12,8 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  List,
-  Grid,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import {
   getAllReservations,
@@ -24,6 +24,7 @@ import {
 import { getAllServices } from '../../../Redux/AsyncThunk/ServiceThunk';
 import { getEmployeesByServiceIds } from '../../../Redux/AsyncThunk/EmployeThunk';
 import { getReservationState } from '../../../Redux/Slice/ReservationSlice';
+import { getServiceState } from '../../../Redux/Slice/ServiceSlice';
 import { getEmployeState } from '../../../Redux/Slice/EmployeSlice';
 import { AppDispatchType } from '../../../Redux/Store';
 import ReservationForm from './ReservationForm';
@@ -32,21 +33,32 @@ export default function ReservationsModule() {
   const dispatch = useDispatch<AppDispatchType>();
 
   const { datas: reservations, action: reservationAction } = useSelector(getReservationState);
+  const { datas: services } = useSelector(getServiceState);
   const { datas: employees } = useSelector(getEmployeState);
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'En attente' | 'En cours d\'exécution' | 'Terminé' | 'Annulé'>('all');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState<any>(null);
   const [expandedReservations, setExpandedReservations] = useState<Set<number>>(new Set());
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   useEffect(() => {
     dispatch(getAllReservations());
     dispatch(getAllServices());
   }, [dispatch]);
 
+  useEffect(() => {
+    const serviceIds = reservations.flatMap((r) => r.services?.map((s: any) => s.id) || []);
+    if (serviceIds.length > 0) {
+      dispatch(getEmployeesByServiceIds([...new Set(serviceIds)]));
+    }
+  }, [dispatch, reservations]);
+
+  // Ouvre le modal avec la réservation à modifier ou vide pour nouveau
   const openModal = (r?: any) => {
-    setEditingReservation(r || null);
+    setEditingReservation(r ?? null);  // r ou null si pas défini
     setIsModalOpen(true);
   };
 
@@ -84,17 +96,17 @@ export default function ReservationsModule() {
   };
 
   const filtered = reservations.filter(
-    (r) => filterStatus === 'all' || r.statut_reservation === filterStatus
+    (r) => filterStatus === 'all' || r.statut_reservation.toLowerCase() === filterStatus.toLowerCase()
   );
 
   const badge = (status: string) => {
-    const base = 'px-3 py-1 rounded-full text-xs font-semibold';
-    switch (status) {
-      case 'Terminé':
+    const base = 'px-3 py-1 text-xs font-medium rounded-full';
+    switch (status?.toLowerCase()) {
+      case 'terminé':
         return `${base} bg-green-100 text-green-800`;
-      case 'En cours d\'exécution':
+      case "en cours d'exécution":
         return `${base} bg-yellow-100 text-yellow-800`;
-      case 'Annulé':
+      case 'annulé':
         return `${base} bg-red-100 text-red-800`;
       default:
         return `${base} bg-blue-100 text-blue-800`;
@@ -103,269 +115,180 @@ export default function ReservationsModule() {
 
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString('fr-FR', {
-      day: 'numeric',
       month: 'short',
+      day: 'numeric',
       year: 'numeric',
     });
 
   const fmtCurrency = (amount: number) => `${amount.toLocaleString()} Ar`;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Header + Filters + View toggle */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold text-gray-900">Gestion des Réservations</h1>
-          <p className="text-gray-600 mt-1">Suivi des contrats et interventions</p>
+          <h2 className="text-2xl font-bold text-gray-900">Gestion des Réservations</h2>
+          <p className="text-gray-600">Gérez les contrats de nettoyage et interventions</p>
         </div>
-
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as any)}
-            className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-600 flex-grow sm:flex-grow-0"
-          >
-            <option value="all">Tous</option>
-            <option value="En attente">En attente</option>
-            <option value="En cours d'exécution">En cours d'exécution</option>
-            <option value="Terminé">Terminé</option>
-            <option value="Annulé">Annulé</option>
-          </select>
-
-          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-            <button
-              className={`px-4 py-2 flex items-center gap-2 transition-colors ${
-                viewMode === 'list' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              onClick={() => setViewMode('list')}
-              aria-label="Vue liste"
-              title="Vue liste"
-            >
-              <List className="w-5 h-5" />
-              Liste
-            </button>
-            <button
-              className={`px-4 py-2 flex items-center gap-2 transition-colors ${
-                viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              onClick={() => setViewMode('grid')}
-              aria-label="Vue grille"
-              title="Vue grille"
-            >
-              <Grid className="w-5 h-5" />
-              Grille
-            </button>
-          </div>
-
-          <button
-            onClick={() => openModal()}
-            className="bg-indigo-600 text-white rounded-lg px-5 py-2 hover:bg-indigo-700 flex items-center justify-center gap-2
-            font-semibold transition-shadow shadow-md hover:shadow-lg flex-shrink-0"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Nouvelle réservation</span>
-          </button>
-        </div>
+        <button
+          onClick={() => openModal()}  // Nouveau formulaire
+          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg hover:shadow-lg flex items-center space-x-2"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Nouvelle Réservation</span>
+        </button>
       </div>
 
-      {/* Vue liste */}
+      {/* Vue Toggle */}
+      <div className="flex space-x-4 mb-4">
+        <button
+          className={`px-4 py-2 rounded-lg ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+          onClick={() => setViewMode('list')}
+        >
+          Vue Liste
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg ${viewMode === 'calendar' ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+          onClick={() => setViewMode('calendar')}
+        >
+          Vue Calendrier
+        </button>
+      </div>
+
+      {/* Liste des réservations */}
       {viewMode === 'list' && (
-        <ul className="space-y-6">
-          {reservationAction.isLoading && (
-            <p className="text-center text-gray-500">Chargement des réservations...</p>
-          )}
+        <div className="space-y-4">
+          {reservationAction.isLoading && <p className="text-center text-gray-500">Chargement…</p>}
           {filtered.map((r) => {
-            const client = r.client;
-            const clientName = client
-              ? `${client.nom_client} ${client.prenom_client}`
-              : 'Client inconnu';
+            const clientName = r.client ? `${r.client.nom_client} ${r.client.prenom_client}` : 'Client inconnu';
             const paid = r.paiements?.reduce((sum: number, p: any) => sum + p.montant, 0) ?? 0;
-            const remaining = (r.montant_total ?? 0) - paid;
+            const remaining = r.montant_total - paid;
+
+            const assignedEmployees = [
+              ...new Map(
+                (r.services?.flatMap((s: any) =>
+                  Array.isArray(employees)
+                    ? employees.filter((e) =>
+                        Array.isArray(e.services) && e.services.some((srv: any) => srv.id === s.id)
+                      )
+                    : []
+                ) || []).map(e => [e.id, e])
+              ).values(),
+            ];
+
             const isExpanded = expandedReservations.has(r.id);
 
             return (
-              <li
-                key={r.id}
-                className="bg-white rounded-xl shadow-md p-6 flex flex-col lg:flex-row gap-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex flex-col gap-4 flex-grow">
-                  <div className="flex items-center gap-4">
-                    <Calendar className="text-indigo-600 w-12 h-12" />
+              <div key={r.id} className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <Calendar className="w-8 h-8 bg-blue-500 text-white rounded-full p-1" />
                     <div>
-                      <h3 className="text-2xl font-semibold text-gray-900 truncate" title={clientName}>
-                        {clientName}
-                      </h3>
-                      {client && (
-                        <div className="mt-1 space-y-0.5 text-sm text-gray-600 max-w-md">
-                          <p><span className="font-medium">Téléphone:</span> {client.phone_client || 'Non renseigné'}</p>
-                          <p><span className="font-medium">Email:</span> {client.email_client || 'Non renseigné'}</p>
-                          <p className="truncate max-w-sm"><span className="font-medium">Adresse:</span> {client.adresse_client || 'Non renseignée'}</p>
-                        </div>
+                      <h3 className="font-semibold text-gray-900">Réservation #{r.id}</h3>
+                      <p className="text-sm text-gray-600">{clientName}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className={badge(r.statut_reservation)}>{r.statut_reservation}</span>
+                    <button onClick={() => toggleExpand(r.id)} className="text-blue-500 hover:text-blue-700">
+                      {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </button>
+                  </div>
+                </div>
+
+                {isExpanded && (
+                  <div className="mt-4 space-y-3 text-sm text-gray-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>{fmtDate(r.created_at)}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span>{fmtCurrency(paid)} payé</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="w-4 h-4" />
+                        <span>{fmtCurrency(remaining)} reste</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4" />
+                        <span>{r.services?.length || 0} service(s)</span>
+                      </div>
+
+                      {/* Infos client */}
+                      <div className="flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span>Email: {r.client?.email_client || 'Non renseigné'}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span>Téléphone: {r.client?.phone_client || 'Non renseigné'}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="w-4 h-4" />
+                        <span>Adresse: {r.client?.adresse_client || 'Non renseigné'}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <strong>Employés : </strong>
+                      {assignedEmployees.length > 0
+                        ? assignedEmployees.map((e) => `${e.nom} ${e.prenoms}`).join(', ')
+                        : 'Aucun employé'}
+                    </div>
+
+                    <div className="flex justify-end space-x-2 pt-2">
+                      <button
+                        onClick={() => openModal(r)}  // ici le bouton modifier fonctionne
+                        className="flex items-center space-x-1 px-3 py-1 text-blue-500 hover:bg-blue-50 rounded-lg"
+                      >
+                        <Edit size={16} />
+                        <span>Modifier</span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="flex items-center space-x-1 px-3 py-1 text-red-500 hover:bg-red-50 rounded-lg"
+                      >
+                        <Trash2 size={16} />
+                        <span>Supprimer</span>
+                      </button>
+                      {r.statut_reservation?.toLowerCase() === 'en attente' && (
+                        <button
+                          onClick={() => handleConfirm(r.id)}
+                          className="flex items-center space-x-1 px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                        >
+                          <CheckCircle size={16} />
+                          <span>Terminer</span>
+                        </button>
                       )}
                     </div>
                   </div>
-
-                  {isExpanded && (
-                    <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50 text-gray-700 text-sm space-y-3">
-                      <p><strong>Date réservation :</strong> {fmtDate(r.created_at)}</p>
-                      <p><strong>Montant total :</strong> {fmtCurrency(r.montant_total)}</p>
-                      <p><strong>Payé :</strong> {fmtCurrency(paid)}</p>
-                      <p><strong>Reste à payer :</strong> {fmtCurrency(remaining)}</p>
-                      <p><strong>Services :</strong> {r.services?.map((s:any) => s.denomination || s.nom).join(', ')}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col justify-end gap-4 shrink-0">
-                  <span className={badge(r.statut_reservation)}>{r.statut_reservation}</span>
-
-                  <button
-                    onClick={() => toggleExpand(r.id)}
-                    className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-semibold focus:outline-none"
-                    aria-label={isExpanded ? 'Réduire détails' : 'Afficher détails'}
-                  >
-                    {isExpanded ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
-                    {isExpanded ? 'Moins' : 'Plus'}
-                  </button>
-
-                  <button
-                    onClick={() => openModal(r)}
-                    className="bg-blue-100 text-blue-800 rounded-lg px-4 py-1 hover:bg-blue-200 flex items-center gap-2 font-semibold"
-                  >
-                    <Edit className="w-5 h-5" />
-                    Modifier
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    className="bg-red-100 text-red-800 rounded-lg px-4 py-1 hover:bg-red-200 flex items-center gap-2 font-semibold"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                    Supprimer
-                  </button>
-
-                  {r.statut_reservation === 'En attente' && (
-                    <button
-                      onClick={() => handleConfirm(r.id)}
-                      className="bg-green-600 text-white rounded-lg px-4 py-1 hover:bg-green-700 flex items-center gap-2 font-semibold"
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                      Terminer
-                    </button>
-                  )}
-                </div>
-              </li>
+                )}
+              </div>
             );
           })}
-        </ul>
+        </div>
       )}
 
-      {/* Vue grille */}
-      {viewMode === 'grid' && (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {reservationAction.isLoading && (
-            <p className="text-center text-gray-500 col-span-full">Chargement des réservations...</p>
-          )}
-
-          {filtered.map((r) => {
-            const client = r.client;
-            const clientName = client
-              ? `${client.nom_client} ${client.prenom_client}`
-              : 'Client inconnu';
-            const paid = r.paiements?.reduce((sum: number, p: any) => sum + p.montant, 0) ?? 0;
-            const remaining = (r.montant_total ?? 0) - paid;
-            const isExpanded = expandedReservations.has(r.id);
-
-            return (
-              <li
-                key={r.id}
-                className="bg-white rounded-xl shadow-md p-6 flex flex-col hover:shadow-lg transition-shadow min-h-[360px]"
-              >
-                <div className="flex flex-col flex-grow space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Calendar className="text-indigo-600 w-12 h-12 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-2xl font-semibold text-gray-900 truncate" title={clientName}>
-                        {clientName}
-                      </h3>
-                      {client && (
-                        <div className="mt-1 space-y-1 text-sm text-gray-600 max-w-md">
-                          <p><span className="font-medium">Téléphone:</span> {client.phone_client || 'Non renseigné'}</p>
-                          <p><span className="font-medium">Email:</span> {client.email_client || 'Non renseigné'}</p>
-                          <p className="truncate max-w-sm"><span className="font-medium">Adresse:</span> {client.adresse_client || 'Non renseignée'}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {isExpanded && (
-                    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 text-gray-700 text-sm space-y-3">
-                      <p><strong>Date réservation :</strong> {fmtDate(r.created_at)}</p>
-                      <p><strong>Montant total :</strong> {fmtCurrency(r.montant_total)}</p>
-                      <p><strong>Payé :</strong> {fmtCurrency(paid)}</p>
-                      <p><strong>Reste à payer :</strong> {fmtCurrency(remaining)}</p>
-                      <p><strong>Services :</strong> {r.services?.map((s:any) => s.denomination || s.nom).join(', ')}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-gray-200 flex flex-wrap gap-2 justify-end">
-                  <span className={badge(r.statut_reservation)}>{r.statut_reservation}</span>
-
-                  <button
-                    onClick={() => toggleExpand(r.id)}
-                    className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-semibold focus:outline-none"
-                    aria-label={isExpanded ? 'Réduire détails' : 'Afficher détails'}
-                  >
-                    {isExpanded ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
-                    {isExpanded ? 'Moins' : 'Plus'}
-                  </button>
-
-                  <button
-                    onClick={() => openModal(r)}
-                    className="bg-blue-100 text-blue-800 rounded-lg px-3 py-1 hover:bg-blue-200 flex items-center gap-2 font-semibold"
-                  >
-                    <Edit className="w-5 h-5" />
-                    Modifier
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    className="bg-red-100 text-red-800 rounded-lg px-3 py-1 hover:bg-red-200 flex items-center gap-2 font-semibold"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                    Supprimer
-                  </button>
-
-                  {r.statut_reservation === 'En attente' && (
-                    <button
-                      onClick={() => handleConfirm(r.id)}
-                      className="bg-green-600 text-white rounded-lg px-3 py-1 hover:bg-green-700 flex items-center gap-2 font-semibold"
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                      Terminer
-                    </button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      {/* Modal */}
+      {/* Modal formulaire réservation */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm px-4">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
             <ReservationForm
-              reservation={editingReservation}
+              reservation={editingReservation}  // passe bien la réservation pour modification
               onClose={closeModal}
               onSubmit={handleSubmit}
               loading={reservationAction.isCreating || reservationAction.isUpdating}
+              employees={employees}
+              services={services}
             />
           </div>
         </div>
       )}
+
+      {/* Modal jour calendrier (optionnelle) */}
+
     </div>
   );
 }

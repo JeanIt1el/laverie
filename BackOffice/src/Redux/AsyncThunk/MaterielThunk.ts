@@ -55,6 +55,8 @@ export const updateMateriel = createAsyncThunk<
   async ({ id, ...updateData }, { rejectWithValue }) => {
     try {
       const response = await axios.put(apiUrls(`api/materiel/${id}`), updateData);
+      console.log(response);
+      
       return response.data as MaterielType;
     } catch (error) {
       console.error("Erreur lors de la mise à jour du matériel :", error);

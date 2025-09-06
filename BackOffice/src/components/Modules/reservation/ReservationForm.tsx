@@ -5,6 +5,12 @@ import { AppDispatchType, RootStateType } from '../../../Redux/Store';
 import { getAllClients } from '../../../Redux/AsyncThunk/ClientThunk';
 import { getAllServices } from '../../../Redux/AsyncThunk/ServiceThunk';
 
+type Employee = {
+  id: number;
+  nom: string;
+  prenoms: string;
+};
+
 type Props = {
   reservation?: any;
   onClose?: () => void;
@@ -13,9 +19,11 @@ type Props = {
     montant_total: number;
     client_id: number;
     services: number[];
+    employees?: number[];  // ajout pour employés
     created_at: string;
   }) => void;
   loading?: boolean;
+  employees?: Employee[];  // injectés depuis parent
 };
 
 export default function ReservationForm({
@@ -23,6 +31,7 @@ export default function ReservationForm({
   onClose,
   onSubmit,
   loading,
+  employees = [],
 }: Props) {
   const dispatch = useDispatch<AppDispatchType>();
   const { datas: clients } = useSelector((state: RootStateType) => state.Clients);
@@ -31,6 +40,11 @@ export default function ReservationForm({
 
   const [selectedServices, setSelectedServices] = useState<number[]>(
     reservation?.services?.map((s: any) => s.id) || []
+  );
+  
+  // State pour employés sélectionnés (ids)
+  const [selectedEmployees, setSelectedEmployees] = useState<number[]>(
+    reservation?.employees?.map((e: any) => e.id) || []
   );
 
   const minDate = useMemo(() => {
@@ -58,18 +72,25 @@ export default function ReservationForm({
 
   const computedStatus = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    return createdAt === today ? 'En cours d\'exécution' : 'En attente';
+    return createdAt === today ? "En cours d'exécution" : 'En attente';
   }, [createdAt]);
 
   const reservedServiceIdsOnDate = useMemo(() => {
     const dateKey = new Date(createdAt).toISOString().slice(0, 10);
     return reservations
-      .filter(r =>
-        r.created_at?.slice(0, 10) === dateKey &&
-        (r.statut_reservation as string) !== 'Terminé'
+      .filter(
+        r =>
+          r.created_at?.slice(0, 10) === dateKey &&
+          (r.statut_reservation as string) !== 'Terminé'
       )
       .flatMap(r => r.services?.map((s: any) => s.id) || []);
   }, [createdAt, reservations]);
+
+  const toggleEmployee = (id: number) => {
+    setSelectedEmployees((prev) =>
+      prev.includes(id) ? prev.filter(eid => eid !== id) : [...prev, id]
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -81,10 +102,13 @@ export default function ReservationForm({
       client_id: Number((form.elements.namedItem('client_id') as HTMLSelectElement).value),
       services: selectedServices,
       created_at: createdAt,
+      employees: selectedEmployees,
     };
 
-    console.log("Payload envoyé :", payload);
+    // console.log('Payload envoyé:', payload);
+
     onSubmit(payload);
+    return payload;
   };
 
   return (
@@ -93,20 +117,20 @@ export default function ReservationForm({
         {reservation ? 'Modifier' : 'Ajouter'} une réservation
       </h3>
 
-      {/* Date de réservation */}
+      {/* Date */}
       <div>
         <label className="block text-sm font-medium text-gray-700">Date de réservation</label>
         <input
           type="date"
           value={createdAt}
           min={minDate}
-          onChange={(e) => setCreatedAt(e.target.value)}
+          onChange={e => setCreatedAt(e.target.value)}
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         />
         <p className="text-xs text-gray-500 mt-1">Vous ne pouvez pas réserver pour aujourd'hui.</p>
       </div>
 
-      {/* Statut automatique */}
+      {/* Statut
       <div>
         <label className="block text-sm font-medium text-gray-700">Statut (automatique)</label>
         <input
@@ -115,9 +139,9 @@ export default function ReservationForm({
           readOnly
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
         />
-      </div>
+      </div> */}
 
-      {/* Montant total */}
+      {/* Montant Total */}
       <div>
         <label className="block text-sm font-medium text-gray-700">Montant Total (Ar)</label>
         <input
@@ -137,7 +161,9 @@ export default function ReservationForm({
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="" disabled>-- Choisir un client --</option>
+          <option value="" disabled>
+            -- Choisir un client --
+          </option>
           {clients.map((c: any) => (
             <option key={c.id} value={c.id}>
               {c.nom_client} {c.prenom_client}
@@ -146,7 +172,7 @@ export default function ReservationForm({
         </select>
       </div>
 
-      {/* Services avec blocage conditionnel */}
+      {/* Services */}
       <div>
         <label className="block text-sm font-medium text-gray-700">Services</label>
         <div className="mt-2 grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3 bg-gray-50">
@@ -162,7 +188,9 @@ export default function ReservationForm({
             return (
               <label
                 key={s.id}
-                className={`flex items-center space-x-2 text-sm ${isReserved ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                className={`flex items-center space-x-2 text-sm ${
+                  isReserved ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                }`}
               >
                 <input
                   type="checkbox"
@@ -170,9 +198,7 @@ export default function ReservationForm({
                   checked={selectedServices.includes(s.id)}
                   onChange={() =>
                     setSelectedServices(prev =>
-                      prev.includes(s.id)
-                        ? prev.filter(id => id !== s.id)
-                        : [...prev, s.id]
+                      prev.includes(s.id) ? prev.filter(id => id !== s.id) : [...prev, s.id]
                     )
                   }
                   className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -188,6 +214,29 @@ export default function ReservationForm({
               </label>
             );
           })}
+        </div>
+      </div>
+
+      {/* Sélection des employés en multi-checkbox */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Sélection des employés</label>
+        <div className="max-h-48 overflow-y-auto border border-gray-300 flex flew-wrap items-center gap-4 rounded-md p-3 bg-gray-50 space-y-1">
+          {employees.length > 0 ? (
+            employees.map(emp => (
+              <label key={emp.id} className="flex items-center space-x-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedEmployees.includes(emp.id)}
+                  onChange={() => toggleEmployee(emp.id)}
+                  disabled={loading}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span>{emp.nom} {emp.prenoms}</span>
+              </label>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">Aucun employé disponible.</p>
+          )}
         </div>
       </div>
 

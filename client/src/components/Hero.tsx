@@ -33,22 +33,15 @@ const Hero: React.FC<HeroProps> = ({ onBooking }) => {
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-              <span className="block">CleanCare</span>
+              <span className="block">Eray Clean</span>
               <span className="block text-cyan-300">Votre linge,</span>
               <span className="block text-cyan-300">notre expertise</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-blue-100 leading-relaxed">
-              Service de nettoyage professionnel à domicile à Abidjan. 
+              Service de nettoyage professionnel à domicile. 
               Collecte et livraison gratuites, qualité garantie, délais respectés.
             </p>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <h3 className="text-lg font-semibold mb-3">🎉 Offre de lancement :</h3>
-              <p className="text-blue-100">
-                <strong>-20% sur votre première commande</strong> avec le code <span className="bg-cyan-500 px-2 py-1 rounded font-mono">WELCOME20</span>
-              </p>
-            </div>
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
@@ -105,7 +98,7 @@ const Hero: React.FC<HeroProps> = ({ onBooking }) => {
             <img
               width="800px"
               src={windows}
-              alt="Service de nettoyage professionnel CleanCare"
+              alt="Service de nettoyage professionnel CleanEray"
               className="relative rounded-2xl shadow-2xl w-full h-96 object-cover"
             />
             
