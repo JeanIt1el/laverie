@@ -27,6 +27,7 @@ import { getServiceState } from "../../../Redux/Slice/ServiceSlice";
 import { getEmployeState } from "../../../Redux/Slice/EmployeSlice";
 import { AppDispatchType } from "../../../Redux/Store";
 import ReservationForm from "./ReservationForm";
+import { useLocation } from "react-router-dom";
 
 const FILTER_OPTIONS = [
   "all",
@@ -39,15 +40,23 @@ type FilterStatus = typeof FILTER_OPTIONS[number];
 
 export default function ReservationsModule() {
   const dispatch = useDispatch<AppDispatchType>();
+  const location = useLocation();
 
-  const { datas: reservations, action: reservationAction } = useSelector(getReservationState);
+  // Récupère l’id de la réservation cliquée dans notification
+  const viewedReservationId = location.state?.viewedReservationId || null;
+
+  const { datas: reservations, action: reservationAction } = useSelector(
+    getReservationState
+  );
   const { datas: services } = useSelector(getServiceState);
   const { datas: employees } = useSelector(getEmployeState);
 
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState<any>(null);
-  const [expandedReservations, setExpandedReservations] = useState<Set<number>>(new Set());
+  const [expandedReservations, setExpandedReservations] = useState<Set<number>>(
+    new Set()
+  );
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -60,7 +69,7 @@ export default function ReservationsModule() {
     reloadData();
     const intervalId = setInterval(() => {
       reloadData();
-    }, 30000);
+    }, 10000);
     return () => clearInterval(intervalId);
   }, [dispatch]);
 
@@ -124,8 +133,10 @@ export default function ReservationsModule() {
         return `${base} bg-yellow-200 text-yellow-800`;
       case "annulé":
         return `${base} bg-red-200 text-red-800`;
-      default:
+      case "en attente":
         return `${base} bg-blue-200 text-blue-700`;
+      default:
+        return `${base} bg-gray-200 text-gray-800`;
     }
   };
 
@@ -159,7 +170,6 @@ export default function ReservationsModule() {
     const paid = r.paiements?.reduce((sum: number, p: any) => sum + p.montant, 0) ?? 0;
     const remaining = r.montant_total - paid;
 
-    // Correct aggregation unique des employés assignés aux services
     const assignedEmployees = Array.from(
       new Map(
         (r.services?.flatMap((s: any) =>
@@ -174,8 +184,14 @@ export default function ReservationsModule() {
 
     const isExpanded = expandedReservations.has(r.id);
 
+    const isViewed = viewedReservationId === r.id;
+
     return (
-      <div className="border rounded-xl p-6 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <div
+        className={`border rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 ${
+          isViewed ? "bg-yellow-50 border-yellow-400" : "bg-white border-gray-200"
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Calendar className="w-8 h-8 bg-blue-500 text-white rounded-full p-1" />
@@ -186,11 +202,15 @@ export default function ReservationsModule() {
           </div>
           <div className="flex items-center space-x-3">
             <span className={badge(r.statut_reservation)}>{r.statut_reservation}</span>
-            <button onClick={() => toggleExpand(r.id)} className="text-blue-600 hover:text-blue-700 transition">
+            <button
+              onClick={() => toggleExpand(r.id)}
+              className="text-blue-600 hover:text-blue-700 transition"
+            >
               {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
           </div>
         </div>
+
         {isExpanded && (
           <div className="mt-5 space-y-4 text-gray-700 text-base leading-relaxed">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -210,7 +230,6 @@ export default function ReservationsModule() {
                 <Clock className="w-5 h-5" />
                 <span>{r.services?.length || 0} service(s)</span>
               </div>
-
               <div className="flex items-center space-x-2">
                 <User className="w-5 h-5" />
                 <span>Email: {r.client?.email_client || "Non renseigné"}</span>
@@ -223,7 +242,6 @@ export default function ReservationsModule() {
                 <MapPin className="w-5 h-5" />
                 <span>Adresse: {r.client?.adresse_client || "Non renseigné"}</span>
               </div>
-
               <div className="col-span-2 flex flex-wrap gap-2">
                 <strong>Services commandés :</strong>
                 {r.services?.length
@@ -283,11 +301,12 @@ export default function ReservationsModule() {
     );
   };
 
+  // Calendrier complet
   const renderCalendar = () => {
     const year = calendarDate.getFullYear();
     const month = calendarDate.getMonth();
     const firstDayOfMonth = new Date(year, month, 1).getDay();
-    const startOffset = (firstDayOfMonth + 6) % 7;
+    const startOffset = (firstDayOfMonth + 6) % 7; // Adjust pour lundi = 0
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     const blanks = Array(startOffset).fill(null);
@@ -296,13 +315,14 @@ export default function ReservationsModule() {
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(year, month, d);
       const dateKey = date.toISOString().slice(0, 10);
-      const reservationsOnDay = reservations.filter((r) => r.created_at?.slice(0, 10) === dateKey);
+      const reservationsOnDay = reservations.filter(
+        (r) => r.created_at?.slice(0, 10) === dateKey
+      );
       days.push({ date, reservationsOnDay });
     }
 
     const allCells = [...blanks, ...days];
     const weeks = [];
-
     for (let i = 0; i < allCells.length; i += 7) {
       weeks.push(allCells.slice(i, i + 7));
     }
@@ -311,17 +331,24 @@ export default function ReservationsModule() {
       <div>
         <div className="flex items-center justify-center space-x-4 mb-4">
           <button
-            onClick={() => setCalendarDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1))}
+            onClick={() =>
+              setCalendarDate(new Date(year, month - 1, calendarDate.getDate()))
+            }
             className="p-2 rounded-md hover:bg-gray-100"
             aria-label="Mois précédent"
           >
             <ChevronLeft size={20} />
           </button>
           <span className="font-semibold text-lg">
-            {calendarDate.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+            {calendarDate.toLocaleDateString("fr-FR", {
+              month: "long",
+              year: "numeric",
+            })}
           </span>
           <button
-            onClick={() => setCalendarDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1))}
+            onClick={() =>
+              setCalendarDate(new Date(year, month + 1, calendarDate.getDate()))
+            }
             className="p-2 rounded-md hover:bg-gray-100"
             aria-label="Mois suivant"
           >
@@ -377,10 +404,13 @@ export default function ReservationsModule() {
     );
   };
 
+  // Modal affichant les réservations sur un jour sélectionné
   const DayModal = () => {
     if (!selectedDay) return null;
     const dayKey = selectedDay.toISOString().slice(0, 10);
-    const dayReservations = reservations.filter((r) => r.created_at?.slice(0, 10) === dayKey);
+    const dayReservations = reservations.filter(
+      (r) => r.created_at?.slice(0, 10) === dayKey
+    );
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -448,7 +478,9 @@ export default function ReservationsModule() {
     <div className="space-y-10 bg-gray-50 min-h-screen p-8 font-sans">
       <header className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Gestion des Réservations</h1>
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+            Gestion des Réservations
+          </h1>
           <p className="mt-1 text-gray-600 text-lg font-medium">
             Gérez les contrats de nettoyage et interventions
           </p>
