@@ -1,51 +1,63 @@
-export interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  duration: string;
-  icon: string;
-}
+// src/types/index.ts
 
-export interface Order {
-  id: string;
-  services: Service[];
-  status: 'pending' | 'collected' | 'in_progress' | 'ready' | 'delivered';
-  pickupDate: Date;
-  deliveryDate: Date;
-  totalPrice: number;
-  customerInfo: CustomerInfo;
-}
+// Service
+export type ServiceType = {
+  id: number;
+  denomination: string;
+  description: string | null;
+  prix: number;
+  created_at: string | null;
+};
 
-export interface CustomerInfo {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-}
+// Client
+export type ClientType = {
+  id: number;
+  nom_client: string;
+  prenom_client: string;
+  email_client: string;
+  phone_client: string;
+  adresse_client: string;
+};
 
-export interface Review {
-  id: string;
-  customerName: string;
-  rating: number;
-  comment: string;
-  date: Date;
-  verified: boolean;
-}
+// Reservation
+export type ReservationType = {
+  id: number;
+  created_at: string;
+  statut_reservation: string;
+  montant_total: number;
+  client: ClientType;
+  services: ServiceType[];
+};
 
-export interface FAQ {
-  id: string;
-  question: string;
-  answer: string;
-}
+// Pour la création
+export type CreateReservationDTO = {
+  client_id: number;
+  statut_reservation: string;
+  montant_total: number;
+  created_at: string;
+  services: number[]; // tableau d'IDs de services
+};
 
-export interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  date: Date;
-  image: string;
-  category: string;
-}
+// Action
+export type ActionType = {
+  isLoading?: boolean;
+  isCreating?: boolean;
+  isUpdating?: boolean;
+  isDeleting?: boolean;
+};
+
+// Store
+export type RootStateType = {
+  Reservation: {
+    datas: ReservationType[];
+    action: ActionType;
+  };
+  Service: {
+    datas: ServiceType[];
+    action: ActionType;
+    page: number;
+  };
+  Client: {
+    data: ClientType | null;
+  };
+};

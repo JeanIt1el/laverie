@@ -1,6 +1,8 @@
 // src/components/Login.tsx
 import React, { useState } from 'react';
-import { authService } from '../service/authService';
+import { authService } from '../service/authService'; // ✅ 'services', pas 'service'
+import { useDispatch } from 'react-redux';
+import { setClient } from '../redux/Slice/ClientSlice';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +17,8 @@ const Login = () => {
     phone_client: '',
     adresse_client: '',
   });
+
+  const dispatch = useDispatch(); // ✅ Ajout du dispatch
 
   // Étape 1 : Demande d'OTP
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -64,8 +68,14 @@ const Login = () => {
     setError('');
 
     try {
-      await authService.verifyOtp(email, otp);
-      window.location.href = '/account'; // ou '/booking'
+      // ✅ Récupère userData
+      const userData = await authService.verifyOtp(email, otp);
+
+      // ✅ Mets à jour le store Redux
+      dispatch(setClient(userData));
+
+      // ✅ Redirige
+      window.location.href = '/account';
     } catch (err: any) {
       setError('Code incorrect');
     } finally {

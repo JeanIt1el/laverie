@@ -21,12 +21,11 @@ export const authService = {
     }
   },
 
-  // ✅ Correction ici : 'data: any' au lieu de '( any)'
   async completeProfile(data: any): Promise<any> {
     const response = await fetch('http://localhost:8000/api/auth/complete-profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data), // ✅ 'data' est maintenant bien défini
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
@@ -37,7 +36,8 @@ export const authService = {
     return response.json();
   },
 
-  async verifyOtp(email: string, otp: string): Promise<void> {
+  // ✅ Modification : retourne userData pour le dispatch
+  async verifyOtp(email: string, otp: string): Promise<any> {
     const response = await fetch('http://localhost:8000/api/auth/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -52,6 +52,7 @@ export const authService = {
     const userData = await response.json();
     localStorage.setItem('authToken', 'authenticated');
     localStorage.setItem('client', JSON.stringify(userData));
+    return userData; // ✅ Retourne les données
   },
 
   isAuthenticated(): boolean {
