@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Client;
 use App\Repository\ClientRepository;
+use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,12 +14,15 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/auth')]
 class AuthController extends AbstractController
 {
-    // === ÉTAPE 1 : Vérifie si l'email existe déjà ===
+    public function __construct(private EmailService $emailService)
+    {
+    }
+
     #[Route('/request-otp', name: 'api_request_otp', methods: ['POST'])]
     public function requestOtp(
         Request $request,
         ClientRepository $clientRepo,
-        EntityManagerInterface $em // ✅ Déjà injecté
+        EntityManagerInterface $em
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
         $email = $data['email_client'] ?? null;
@@ -30,21 +34,24 @@ class AuthController extends AbstractController
         $client = $clientRepo->findOneBy(['email_client' => $email]);
 
         if ($client) {
-            // ✅ Client existe → génère OTP
             $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             $expiresAt = new \DateTimeImmutable('+10 minutes');
 
             $client->setOtpCode($otp);
             $client->setOtpExpiresAt($expiresAt);
-            $em->flush(); // ✅ CORRIGÉ : utilise $em au lieu de getDoctrine()
+            $em->flush();
+
+            try {
+                $this->emailService->sendOtpEmail($email, $otp);
+            } catch (\Exception $e) {
+                return $this->json(['error' => 'Erreur lors de l\'envoi de l\'email: ' . $e->getMessage()], 500);
+            }
 
             return $this->json([
                 'requires_completion' => false,
-                'message' => 'Un code envoyé à votre email.',
-                'otp' => $otp, // 🔴 DEV only
+                'message' => 'Un code a été envoyé à votre email.',
             ]);
         } else {
-            // ❌ Nouveau → demande les infos
             return $this->json([
                 'requires_completion' => true,
                 'email' => $email,
@@ -53,7 +60,6 @@ class AuthController extends AbstractController
         }
     }
 
-    // === ÉTAPE 2 : Compléter le profil du nouveau client ===
     #[Route('/complete-profile', name: 'api_complete_profile', methods: ['POST'])]
     public function completeProfile(
         Request $request,
@@ -72,7 +78,6 @@ class AuthController extends AbstractController
             return $this->json(['error' => 'Tous les champs sont requis'], 400);
         }
 
-        // Vérifie que l'email n’existe pas déjà
         if ($clientRepo->findOneBy(['email_client' => $email])) {
             return $this->json(['error' => 'Cet email est déjà utilisé'], 409);
         }
@@ -84,7 +89,6 @@ class AuthController extends AbstractController
         $client->setPhoneClient($phone);
         $client->setAdresseClient($adresse);
 
-        // Génère un OTP
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $client->setOtpCode($otp);
         $client->setOtpExpiresAt(new \DateTimeImmutable('+10 minutes'));
@@ -92,13 +96,17 @@ class AuthController extends AbstractController
         $em->persist($client);
         $em->flush();
 
+        try {
+            $this->emailService->sendOtpEmail($email, $otp);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Erreur lors de l\'envoi de l\'email: ' . $e->getMessage()], 500);
+        }
+
         return $this->json([
             'message' => 'Profil complété. Un code a été envoyé.',
-            'otp' => $otp, // 🔴 À supprimer en production
         ]);
     }
 
-    // === ÉTAPE 3 : Vérifier l'OTP après connexion ===
     #[Route('/verify-otp', name: 'api_verify_otp', methods: ['POST'])]
     public function verifyOtp(
         Request $request,
@@ -123,30 +131,9 @@ class AuthController extends AbstractController
             return $this->json(['error' => 'OTP expiré'], 400);
         }
 
-        // OTP valide → nettoyer
         $client->setOtpCode(null);
         $client->setOtpExpiresAt(null);
         $em->flush();
-
-        return $this->json([
-            'id' => $client->getId(),
-            'nom_client' => $client->getNomClient(),
-            'prenom_client' => $client->getPrenomClient(),
-            'email_client' => $client->getEmailClient(),
-            'phone_client' => $client->getPhoneClient(),
-            'adresse_client' => $client->getAdresseClient(),
-        ]);
-    }
-
-    // === Optionnel : Récupérer le client connecté ===
-    #[Route('/me', name: 'api_client_me', methods: ['GET'])]
-    public function me(): JsonResponse
-    {
-        $client = $this->getUser(); // À adapter si tu utilises JWT ou session
-
-        if (!$client) {
-            return $this->json(['error' => 'Non authentifié'], 401);
-        }
 
         return $this->json([
             'id' => $client->getId(),

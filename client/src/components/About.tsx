@@ -9,7 +9,7 @@ const About: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            À propos de CleanCare
+            À propos de Madio
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Votre partenaire de confiance pour un service de nettoyage professionnel 

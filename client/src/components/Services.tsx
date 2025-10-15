@@ -42,7 +42,7 @@ const Services: React.FC<ServicesProps> = ({ onBooking }) => {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Nos Services</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Des prestations de qualité professionnelle pour prendre soin de vos vêtements
+            Des prestations de qualité professionnelle pour prendre soin de vos polution
           </p>
         </div>
 

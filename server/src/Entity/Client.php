@@ -36,9 +36,7 @@ class Client
     private ?string $otpCode = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeInterface $otpExpiresAt = null;
-
-    
+    private ?\DateTimeImmutable $otpExpiresAt = null;
 
     /**
      * @var Collection<int, Reservation>
@@ -51,120 +49,27 @@ class Client
         $this->reservations = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
+    public function getNomClient(): ?string { return $this->nom_client; }
+    public function setNomClient(string $nom_client): static { $this->nom_client = $nom_client; return $this; }
+    public function getPrenomClient(): ?string { return $this->prenom_client; }
+    public function setPrenomClient(string $prenom_client): static { $this->prenom_client = $prenom_client; return $this; }
+    public function getEmailClient(): ?string { return $this->email_client; }
+    public function setEmailClient(string $email_client): static { $this->email_client = $email_client; return $this; }
+    public function getPhoneClient(): ?string { return $this->phone_client; }
+    public function setPhoneClient(string $phone_client): static { $this->phone_client = $phone_client; return $this; }
+    public function getAdresseClient(): ?string { return $this->adresse_client; }
+    public function setAdresseClient(string $adresse_client): static { $this->adresse_client = $adresse_client; return $this; }
 
-    public function getNomClient(): ?string
-    {
-        return $this->nom_client;
-    }
-
-    public function setNomClient(string $nom_client): static
-    {
-        $this->nom_client = $nom_client;
-
-        return $this;
-    }
-
-    public function getPrenomClient(): ?string
-    {
-        return $this->prenom_client;
-    }
-
-    public function setPrenomClient(string $prenom_client): static
-    {
-        $this->prenom_client = $prenom_client;
-
-        return $this;
-    }
-
-    public function getEmailClient(): ?string
-    {
-        return $this->email_client;
-    }
-
-    public function setEmailClient(string $email_client): static
-    {
-        $this->email_client = $email_client;
-
-        return $this;
-    }
-
-    public function getPhoneClient(): ?string
-    {
-        return $this->phone_client;
-    }
-
-    public function setPhoneClient(string $phone_client): static
-    {
-        $this->phone_client = $phone_client;
-
-        return $this;
-    }
-
-    public function getAdresseClient(): ?string
-    {
-        return $this->adresse_client;
-    }
-
-    public function setAdresseClient(string $adresse_client): static
-    {
-        $this->adresse_client = $adresse_client;
-
-        return $this;
-    }
+    public function getOtpCode(): ?string { return $this->otpCode; }
+    public function setOtpCode(?string $otpCode): static { $this->otpCode = $otpCode; return $this; }
+    public function getOtpExpiresAt(): ?\DateTimeImmutable { return $this->otpExpiresAt; }
+    public function setOtpExpiresAt(?\DateTimeImmutable $otpExpiresAt): static { $this->otpExpiresAt = $otpExpiresAt; return $this; }
 
     /**
      * @return Collection<int, Reservation>
      */
-    public function getReservations(): Collection
-    {
-        return $this->reservations;
-    }
-
-    public function addReservation(Reservation $reservation): static
-    {
-        if (!$this->reservations->contains($reservation)) {
-            $this->reservations->add($reservation);
-            $reservation->setClient($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReservation(Reservation $reservation): static
-    {
-        if ($this->reservations->removeElement($reservation)) {
-            // set the owning side to null (unless already changed)
-            if ($reservation->getClient() === $this) {
-                $reservation->setClient(null);
-            }
-        }
-
-        return $this;
-    }
-    
-    public function getOtpCode(): ?string
-    {
-        return $this->otpCode;
-    }
-
-    public function setOtpCode(?string $otpCode): static
-    {
-        $this->otpCode = $otpCode;
-        return $this;
-    }
-
-    public function getOtpExpiresAt(): ?\DateTimeImmutable
-    {
-        return $this->otpExpiresAt;
-    }
-
-    public function setOtpExpiresAt(?\DateTimeImmutable $otpExpiresAt): static
-    {
-        $this->otpExpiresAt = $otpExpiresAt;
-        return $this;
-    }
+    public function getReservations(): Collection { return $this->reservations; }
+    public function addReservation(Reservation $reservation): static { if (!$this->reservations->contains($reservation)) { $this->reservations->add($reservation); $reservation->setClient($this); } return $this; }
+    public function removeReservation(Reservation $reservation): static { if ($this->reservations->removeElement($reservation)) { if ($reservation->getClient() === $this) { $reservation->setClient(null); } } return $this; }
 }

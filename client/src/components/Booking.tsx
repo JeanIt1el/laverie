@@ -79,26 +79,28 @@ const Booking = () => {
       window.location.href = '/login';
       return;
     }
-
+  
     if (selectedServices.length === 0) {
       alert('Veuillez sélectionner au moins un service.');
       return;
     }
-
+  
     const reservationData = {
       client_id: client.id,
-      statut_reservation: 'pending',
+      // ✅ Supprimez cette ligne - le backend définira automatiquement "En attente"
+      // statut_reservation: 'pending',
       montant_total: calculateTotal(),
       created_at: new Date().toISOString().split('T')[0],
       services: selectedServices,
     };
-
-    console.log('Données envoyées:', reservationData); // 🔍 Debug
-
+  
+    console.log('Données envoyées:', reservationData);
+  
     dispatch(createReservation(reservationData) as any);
     alert('Réservation créée avec succès !');
     window.location.href = '/account';
   };
+  
 
   return (
     <section className="py-20 bg-white">
